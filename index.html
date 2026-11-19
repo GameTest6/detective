@@ -1,0 +1,3231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GUARDIAN OF THE ABYSS - 探偵ミステリーRPG 完全版</title>
+<style>
+  @import url('https://googleapis.com');
+
+  :root {
+    --bg-dark: #050811;
+    --panel-black: #0a0e1a;
+    --crimson: #e6193c;
+    --cyan: #00e5ff;
+    --gold: #f5c542;
+    --green: #22c55e;
+    --purple: #a855f7;
+    --orange: #f97316;
+    --text-white: #f8fafc;
+    --text-gray: #94a3b8;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+  }
+
+  body {
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    font-family: 'Noto Sans JP', sans-serif;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  #bg-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .screen {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: none;
+    flex-direction: column;
+  }
+
+  .screen.active {
+    display: flex;
+  }
+
+  .p-box {
+    background: var(--panel-black);
+    border: 3px solid var(--text-white);
+    box-shadow: 7px 7px 0px var(--crimson);
+    position: relative;
+  }
+
+  .p-badge {
+    display: inline-block;
+    background: var(--crimson);
+    color: #fff;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 4px 16px;
+    transform: skewX(-14deg);
+    border: 2px solid #fff;
+    box-shadow: 4px 4px 0 #000;
+    text-transform: uppercase;
+  }
+
+  .p-badge span {
+    display: inline-block;
+    transform: skewX(14deg);
+  }
+
+  .p-btn {
+    background: #111626;
+    color: #fff;
+    border: 2px solid #fff;
+    padding: 8px 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 900;
+    font-size: 0.84rem;
+    cursor: pointer;
+    transform: skewX(-12deg);
+    transition: all 0.14s ease;
+    box-shadow: 4px 4px 0 var(--crimson);
+  }
+
+  .p-btn:hover:not(:disabled) {
+    background: var(--crimson);
+    color: #fff;
+    transform: skewX(-12deg) translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--cyan);
+  }
+
+  .p-btn:disabled {
+    opacity: 0.36;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .p-btn span {
+    display: inline-block;
+    transform: skewX(12deg);
+  }
+
+  #op-screen {
+    justify-content: space-between;
+    padding: 36px 5%;
+    background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.88) 100%);
+  }
+
+  .op-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .op-dialogue-wrap {
+    margin: auto 0 20px 0;
+    max-width: 920px;
+    width: 100%;
+    align-self: center;
+  }
+
+  .op-window {
+    background: rgba(8, 11, 20, 0.96);
+    border: 3px solid #fff;
+    padding: 28px 34px;
+    clip-path: polygon(0 6%, 98% 0, 100% 94%, 2% 100%);
+    box-shadow: 12px 12px 0 var(--crimson);
+    min-height: 190px;
+  }
+
+  .op-text {
+    font-size: 1.18rem;
+    line-height: 1.85;
+    font-weight: 700;
+    white-space: pre-wrap;
+  }
+
+  #title-screen {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: radial-gradient(circle at center, rgba(10, 20, 45, 0.5), rgba(3, 5, 12, 0.94));
+  }
+
+  .title-sub {
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.4em;
+    color: var(--cyan);
+    font-size: 1.05rem;
+    margin-bottom: 10px;
+  }
+
+  .title-main {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2.4rem, 6vw, 5rem);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    color: #fff;
+    text-shadow: 0 0 25px var(--cyan), 6px 6px 0 var(--crimson);
+    margin-bottom: 10px;
+  }
+
+  .title-jp {
+    font-size: 1.15rem;
+    letter-spacing: 0.4em;
+    color: var(--text-gray);
+    margin-bottom: 36px;
+    font-weight: 700;
+  }
+
+  .title-menu {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  #game-screen {
+    padding: 10px 16px;
+    gap: 10px;
+    background: rgba(5, 8, 17, 0.84);
+  }
+
+  .top-hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px;
+    background: #0b0f1d;
+    border: 2px solid #fff;
+    box-shadow: 5px 5px 0 var(--crimson);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .hud-left, .hud-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .stat-pill {
+    background: #141b30;
+    border-left: 4px solid var(--cyan);
+    padding: 4px 9px;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .stat-pill.hp { border-color: var(--green); }
+  .stat-pill.sp { border-color: var(--purple); }
+  .stat-pill.rank { border-color: var(--gold); color: var(--gold); }
+  .stat-pill.day { border-color: var(--orange); color: #fdba74; }
+  .stat-pill.trust { border-color: #ff3b5c; color: #fda4af; }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 325px 1fr;
+    gap: 14px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  @media (max-width: 880px) {
+    .main-grid {
+      grid-template-columns: 1fr;
+      overflow-y: auto;
+    }
+  }
+
+  .map-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    overflow-y: auto;
+  }
+
+  .panel-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+    color: var(--cyan);
+    border-bottom: 2px solid var(--crimson);
+    padding-bottom: 4px;
+  }
+
+  .loc-btn {
+    width: 100%;
+    text-align: left;
+    background: #12182b;
+    border: 2px solid #334155;
+    color: #fff;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: 0.14s;
+  }
+
+  .loc-btn:hover:not(:disabled) {
+    border-color: var(--cyan);
+    background: #1a233d;
+  }
+
+  .loc-btn.current {
+    border-color: var(--crimson);
+    background: linear-gradient(90deg, rgba(230, 25, 60, 0.28), #12182b);
+  }
+
+  .loc-btn.shortcut {
+    border-left: 5px solid var(--gold);
+  }
+
+  .loc-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .loc-tag {
+    font-size: 0.7rem;
+    font-weight: 900;
+    color: var(--gold);
+    display: block;
+  }
+
+  .stage-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px;
+    overflow-y: auto;
+    gap: 12px;
+  }
+
+  .area-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    border-bottom: 2px solid #1e293b;
+    padding-bottom: 8px;
+  }
+
+  .area-name {
+    font-size: 1.45rem;
+    font-weight: 900;
+    text-shadow: 3px 3px 0 var(--crimson);
+  }
+
+  .area-desc {
+    color: var(--text-gray);
+    font-size: 0.88rem;
+    margin-top: 3px;
+  }
+
+  .spots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+    gap: 10px;
+  }
+
+  .spot-card {
+    background: #111729;
+    border: 2px solid #475569;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: 0.14s;
+    text-align: left;
+    color: #fff;
+  }
+
+  .spot-card:hover {
+    border-color: var(--cyan);
+    transform: translateY(-2px);
+    box-shadow: 4px 4px 0 var(--crimson);
+  }
+
+  .spot-card.done {
+    border-color: var(--green);
+    background: rgba(34, 197, 94, 0.08);
+  }
+
+  .spot-card.boss-spot {
+    border-color: var(--crimson);
+    background: rgba(230, 25, 60, 0.12);
+  }
+
+  .spot-card.sub-spot {
+    border-color: var(--purple);
+    background: rgba(168, 85, 247, 0.12);
+  }
+
+  .spot-type {
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: var(--cyan);
+    letter-spacing: 0.06em;
+  }
+
+  .spot-title {
+    font-size: 0.96rem;
+    font-weight: 900;
+    margin: 3px 0;
+  }
+  .dialogue-box {
+    background: #080b14;
+    border: 2px solid #fff;
+    padding: 14px 18px;
+    min-height: 155px;
+    box-shadow: 6px 6px 0 var(--cyan);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .speaker-name {
+    font-weight: 900;
+    color: var(--cyan);
+    font-size: 0.92rem;
+    letter-spacing: 0.08em;
+  }
+
+  .dialogue-text {
+    font-size: 0.96rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+  }
+
+  .choice-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .code-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 6px;
+  }
+
+  .code-input {
+    background: #0f172a;
+    border: 2px solid var(--cyan);
+    color: #fff;
+    font-family: 'Oswald', sans-serif;
+    font-size: 1.1rem;
+    padding: 6px 12px;
+    width: 140px;
+    letter-spacing: 0.2em;
+    text-align: center;
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.88);
+    z-index: 40;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 18px;
+  }
+
+  .modal-backdrop.active {
+    display: flex;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-width: 880px;
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 22px;
+  }
+
+  .clue-item {
+    background: #11182c;
+    border-left: 5px solid var(--cyan);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+
+  .ded-evidence-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .ev-pick-btn {
+    background: #0d1324;
+    border: 2px solid #475569;
+    color: #fff;
+    padding: 8px 10px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.84rem;
+    font-weight: 700;
+    transition: 0.12s;
+  }
+
+  .ev-pick-btn:hover {
+    border-color: var(--gold);
+    background: #1b2440;
+  }
+
+  #battle-screen {
+    background: radial-gradient(circle at 70% 30%, rgba(230, 25, 60, 0.26), rgba(5, 7, 15, 0.97));
+    padding: 18px 5%;
+    justify-content: space-between;
+    z-index: 30;
+  }
+
+  .battle-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .enemy-stage {
+    text-align: center;
+    margin: auto 0;
+  }
+
+  .enemy-emblem {
+    display: inline-block;
+    padding: 22px 40px;
+    background: #0d1222;
+    border: 3px solid var(--crimson);
+    transform: skewX(-10deg);
+    box-shadow: 10px 10px 0 #000;
+    margin-bottom: 12px;
+  }
+
+  .enemy-emblem.downed {
+    border-color: var(--gold);
+    box-shadow: 0 0 25px var(--gold);
+  }
+
+  .enemy-emblem.charging {
+    border-color: #ff3b5c;
+    box-shadow: 0 0 30px #ff3b5c;
+  }
+
+  .hp-bar-wrap {
+    width: 320px;
+    height: 14px;
+    background: #1e293b;
+    border: 2px solid #fff;
+    margin: 8px auto;
+    overflow: hidden;
+  }
+
+  .hp-bar-fill {
+    height: 100%;
+    background: var(--crimson);
+    transition: width 0.25s ease;
+  }
+
+  .battle-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 760px) {
+    .battle-bottom { grid-template-columns: 1fr; }
+  }
+
+  .cmd-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .banner-flash {
+    position: fixed;
+    top: 42%;
+    left: 0;
+    width: 100%;
+    background: var(--crimson);
+    color: #fff;
+    font-family: 'Cinzel', 'Oswald', sans-serif;
+    font-size: clamp(1.7rem, 4vw, 3rem);
+    font-weight: 900;
+    text-align: center;
+    padding: 12px 0;
+    letter-spacing: 0.18em;
+    border-top: 4px solid #fff;
+    border-bottom: 4px solid #fff;
+    transform: skewY(-3deg) scaleY(0);
+    transition: transform 0.2s ease;
+    z-index: 60;
+    pointer-events: none;
+  }
+
+  .banner-flash.show {
+    transform: skewY(-3deg) scaleY(1);
+  }
+
+  #gameover-screen {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 24px;
+    background: radial-gradient(circle at center, rgba(136, 19, 55, 0.55), rgba(3, 4, 8, 0.98));
+    z-index: 50;
+  }
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div id="banner-flash" class="banner-flash">1 MORE!!</div>
+
+<!-- 1. オープニング画面 -->
+<section id="op-screen" class="screen active" onclick="nextOpSlide()">
+  <div class="op-header">
+    <div class="p-badge"><span id="op-phase">CASE FILE 01 // PROLOGUE</span></div>
+    <button class="p-btn" onclick="event.stopPropagation(); skipOpening()"><span>SKIP &gt;&gt;</span></button>
+  </div>
+  <div class="op-dialogue-wrap">
+    <div style="margin-bottom: 10px;">
+      <div class="p-badge" style="background:#000; border-color:var(--cyan);"><span id="op-speaker" style="color:var(--cyan);">CASE LOG</span></div>
+    </div>
+    <div class="op-window">
+      <div id="op-text" class="op-text"></div>
+    </div>
+    <div style="text-align:right; margin-top:10px; font-size:0.85rem; color:var(--cyan); font-weight:700;">
+      [ CLICK / SPACE TO CONTINUE ]
+    </div>
+  </div>
+</section>
+
+<!-- 2. タイトル画面 -->
+<section id="title-screen" class="screen">
+  <div class="title-sub">DETECTIVE MYSTERY &amp; ASTRAL SHADOW RPG // COMPLETE EDITION</div>
+  <h1 class="title-main">GUARDIAN OF THE ABYSS</h1>
+  <div class="title-jp">― 深淵の守護者 ＆ 300年後の怪盗編 ―</div>
+  <div class="title-menu">
+    <button class="p-btn" onclick="startNewGame()"><span>NEW INVESTIGATION（新規捜査）</span></button>
+    <button class="p-btn" id="btn-continue" onclick="loadGame()"><span>CONTINUE（続きから再開）</span></button>
+    <button class="p-btn" id="btn-delete-title" style="border-color:#ff3b5c;" onclick="deleteSaveData()"><span>DELETE SAVE（セーブ削除）</span></button>
+    <button class="p-btn" onclick="replayOpening()"><span>REPLAY OP（OP再視聴）</span></button>
+  </div>
+</section>
+
+<!-- 3. メイン探偵探索画面 -->
+<section id="game-screen" class="screen">
+  <header class="top-hud">
+    <div class="hud-left">
+      <div class="p-badge"><span id="hud-chapter">ACT I // 霧の港湾都市</span></div>
+      <div class="stat-pill day">経過日数: DAY <span id="hud-day">1</span> / 20</div>
+      <div class="stat-pill trust">推理信頼度: <span id="hud-trust">3</span>/3</div>
+      <div class="stat-pill hp">HP: <span id="hud-hp">130</span>/<span id="hud-maxhp">130</span></div>
+      <div class="stat-pill sp">SP: <span id="hud-sp">65</span>/<span id="hud-maxsp">65</span></div>
+      <div class="stat-pill rank">ランク: <span id="hud-rank">見習い (Lv.1)</span></div>
+      <div class="stat-pill" style="border-color:var(--purple); color:#e9d5ff;">サブ事件: <span id="hud-sub-count">0/4</span></div>
+    </div>
+    <div class="hud-right">
+      <button class="p-btn" onclick="openClueModal()"><span>証拠手帳 (<span id="hud-clue-count">0</span>)</span></button>
+      <button class="p-btn" style="border-color:var(--gold);" onclick="openDeductionModal()"><span>推理・真実の扉 (<span id="hud-ded-count">0/10</span>)</span></button>
+      <button class="p-btn" id="btn-rest" onclick="restAtOffice()"><span>拠点で休息 (1日経過)</span></button>
+      <button class="p-btn" onclick="saveGame()"><span>SAVE</span></button>
+      <button class="p-btn" style="border-color:#ff3b5c;" onclick="deleteSaveData()"><span>DATA RESET</span></button>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <aside class="p-box map-panel">
+      <div class="panel-title">CITY MAP &amp; SHORTCUTS (11 AREAS)</div>
+      <div style="font-size:0.74rem; color:var(--text-gray); line-height:1.5;">
+        ・別エリアへ移動すると<strong>1日経過</strong>（★SCは0.5日）。<strong>DAY 20</strong>を超過するとGAME OVER。<br>
+        ・サブ事件は<strong>依頼を受注</strong>しないと解決不可。全推理＆全サブ事件達成で<strong>真エンディング</strong>！
+      </div>
+      <div id="location-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+    </aside>
+
+    <main class="p-box stage-panel">
+      <div>
+        <div class="area-header">
+          <div>
+            <div style="font-size:0.78rem; color:var(--cyan); font-weight:900;" id="area-depth">DEPTH 0m // 捜査拠点</div>
+            <h2 class="area-name" id="area-name">キョウ探偵事務所</h2>
+            <p class="area-desc" id="area-desc">薄暗いランプが灯る捜査の拠点。</p>
+          </div>
+          <button class="p-btn" id="btn-patrol" onclick="triggerRandomShadow()"><span>闇の気配を探る（修行戦）</span></button>
+        </div>
+
+        <div style="margin:10px 0 6px; font-size:0.82rem; font-weight:900; color:var(--gold);">
+          ▼ 現場調査・暗号・サブ事件（紫枠・要受注）・強敵バトル（赤枠）
+        </div>
+        <div class="spots-grid" id="spots-grid"></div>
+      </div>
+
+      <div class="dialogue-box">
+        <div>
+          <div class="speaker-name" id="dlg-speaker">DETECTIVE KYO</div>
+          <div class="dialogue-text" id="dlg-text">事件の調査を始めよう。制限日数は20日だ。無駄な移動は控え、確実に証拠を集めるんだ。</div>
+        </div>
+        <div id="dlg-extra"></div>
+        <div class="choice-list" id="dlg-choices"></div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- 4. 証拠手帳モーダル -->
+<div id="clue-modal" class="modal-backdrop" onclick="closeModals()">
+  <div class="p-box modal-card" onclick="event.stopPropagation()">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h2 style="font-size:1.35rem; color:var(--cyan);">CASE DOSSIER // 収集した証拠品・秘宝・証言</h2>
+      <button class="p-btn" onclick="closeModals()"><span>CLOSE</span></button>
+    </div>
+    <div id="clue-list"></div>
+  </div>
+</div>
+
+<!-- 5. 選択式・推理＆論理パズルモーダル -->
+<div id="deduction-modal" class="modal-backdrop" onclick="closeModals()">
+  <div class="p-box modal-card" onclick="event.stopPropagation()">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h2 style="font-size:1.35rem; color:var(--gold);">TRUTH GATE // 証拠突きつけ＆論理パズル</h2>
+      <button class="p-btn" onclick="closeModals()"><span>CLOSE</span></button>
+    </div>
+    <p style="color:var(--text-gray); font-size:0.85rem; margin-bottom:14px; line-height:1.55;">
+      警告：当てずっぽうの推理は禁物！誤答するたびに<strong>推理信頼度（残り：<span id="modal-trust-val" style="color:#ff3b5c; font-weight:900;">3</span>）</strong>が1減少し、<strong>0になると即座にBAD END</strong>となります。<br>
+      サブ事件・怪盗依頼は該当する依頼を正式受注してから推理に挑んでください。
+    </p>
+    <div id="deduction-list"></div>
+  </div>
+</div>
+
+<!-- 6. アストラル・アイ バトル画面 -->
+<section id="battle-screen" class="screen">
+  <div class="battle-top">
+    <div class="p-badge"><span id="btl-turn">PLAYER TURN // ANALYZE WEAKNESS</span></div>
+    <div class="stat-pill" style="border-color:var(--gold);">
+      WEAKNESS: <span id="btl-weak-info" style="color:var(--gold);">？？？</span>
+    </div>
+  </div>
+
+  <div class="enemy-stage">
+    <div id="enemy-emblem" class="enemy-emblem">
+      <div style="font-size:0.78rem; color:var(--cyan); letter-spacing:0.2em;" id="enemy-type">ABYSS PHANTOM</div>
+      <div style="font-size:1.85rem; font-weight:900; margin:4px 0;" id="enemy-name">霧の妄執体</div>
+      <div id="enemy-status" style="font-size:0.86rem; color:var(--gold); font-weight:900;"></div>
+    </div>
+    <div class="hp-bar-wrap">
+      <div id="enemy-hp-bar" class="hp-bar-fill" style="width:100%;"></div>
+    </div>
+    <div style="font-size:0.86rem; font-weight:700; color:#cbd5e1;">ENEMY HP: <span id="enemy-hp-text">150/150</span></div>
+  </div>
+
+  <div class="battle-bottom">
+    <div class="p-box" style="padding:14px; display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <div style="font-size:0.8rem; color:var(--cyan); font-weight:900; margin-bottom:6px;">BATTLE LOG // 戦況</div>
+        <div id="btl-log" style="font-size:0.94rem; line-height:1.6;"></div>
+      </div>
+      <div style="display:flex; gap:12px; margin-top:12px; border-top:1px solid #334155; padding-top:8px;">
+        <div class="stat-pill hp">KYO HP: <span id="btl-hp">130/130</span></div>
+        <div class="stat-pill sp">SP: <span id="btl-sp">65/65</span></div>
+      </div>
+    </div>
+
+    <div class="p-box" style="padding:14px;">
+      <div style="font-size:0.8rem; color:var(--gold); font-weight:900; margin-bottom:8px;">ASTRAL COMMANDS // スキル選択</div>
+      <div class="cmd-grid" id="btl-commands"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. ゲームオーバー（BAD END）画面 -->
+<section id="gameover-screen" class="screen">
+  <div class="p-badge" style="margin-bottom:16px;"><span id="go-badge">BAD END // INVESTIGATION FAILED</span></div>
+  <h1 id="go-title" style="font-family:'Cinzel',serif; font-size:clamp(2rem,5vw,3.8rem); color:#ff3b5c; text-shadow:4px 4px 0 #000; margin-bottom:16px;">GAME OVER</h1>
+  <div class="p-box" style="max-width:720px; padding:24px; margin-bottom:24px; text-align:left;">
+    <p id="go-desc" style="font-size:1.05rem; line-height:1.8; white-space:pre-wrap;"></p>
+  </div>
+  <div class="title-menu">
+    <button class="p-btn" onclick="startNewGame()"><span>NEW INVESTIGATION（最初からやり直す）</span></button>
+    <button class="p-btn" id="btn-go-load" onclick="loadGame()"><span>LOAD SAVE（セーブ地点から再開）</span></button>
+    <button class="p-btn" onclick="switchScreen('title-screen'); updateContinueBtn();"><span>TITLE（タイトルへ戻る）</span></button>
+  </div>
+</section>
+
+<script>
+/* =========================================================
+   1. 背景Canvas（深淵の霧・浮遊ライトエフェクト）
+   ========================================================= */
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function initCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  particles = Array.from({ length: 48 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 2.2 + 0.6,
+    vx: (Math.random() - 0.5) * 0.35,
+    vy: Math.random() * -0.45 - 0.15,
+    alpha: Math.random() * 0.55 + 0.15
+  }));
+}
+
+function updateCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = window.isFutureMode
+      ? 'rgba(168, 85, 247, ' + p.alpha + ')'
+      : 'rgba(0, 229, 255, ' + p.alpha + ')';
+    ctx.fill();
+  });
+  requestAnimationFrame(updateCanvas);
+}
+
+
+window.addEventListener('resize', initCanvas);
+initCanvas();
+updateCanvas();
+
+/* =========================================================
+   2. Web Audio API 音響エンジン（BGM・SE完全内蔵）
+   ========================================================= */
+const Sound = {
+  ctx: null,
+  bgmInterval: null,
+  currentBgm: 'none',
+
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AudioCtx();
+    }
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  },
+
+  seClick() {
+    this.init();
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, this.ctx.currentTime + 0.05);
+    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.06);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.07);
+  },
+
+  seError() {
+    this.init();
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+    osc.frequency.setValueAtTime(140, this.ctx.currentTime + 0.09);
+    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.22);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.23);
+  },
+
+  seHit() {
+    this.init();
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(45, this.ctx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.14, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.13);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.14);
+  },
+
+  seWeak() {
+    this.init();
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(523.25, this.ctx.currentTime);
+    osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.08);
+    osc.frequency.setValueAtTime(783.99, this.ctx.currentTime + 0.16);
+    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.36);
+  },
+
+  seClue() {
+    this.init();
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+    osc.frequency.setValueAtTime(880, this.ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.28);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.3);
+  },
+
+  setBGM(type) {
+    if (this.currentBgm === type) return;
+    this.currentBgm = type;
+    if (this.bgmInterval) clearInterval(this.bgmInterval);
+    if (type === 'none') return;
+    this.init();
+    let step = 0;
+    const notesExplore = [220, 261.63, 329.63, 392, 329.63, 261.63];
+    const notesAbyss = [130.81, 146.83, 164.81, 130.81, 116.54, 130.81];
+    const notes = (type === 'abyss') ? notesAbyss : notesExplore;
+
+    this.bgmInterval = setInterval(() => {
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = (type === 'abyss') ? 'sawtooth' : 'sine';
+      osc.frequency.setValueAtTime(notes[step % notes.length], this.ctx.currentTime);
+      gain.gain.setValueAtTime(0.024, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.45);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.48);
+      step++;
+    }, 550);
+  }
+};
+
+/* =========================================================
+   3. オープニング演出スライド（全6ステップ）
+   ========================================================= */
+const OP_SLIDES = [
+  {
+    phase: 'CASE FILE 01 // PROLOGUE',
+    speaker: 'DETECTIVE KYO',
+    text: 'ここは常春と濃霧の港都《アビス・ポート》。\n私は探偵キョウ。アストラル・アイ（深淵の眼）を持つ私には、この街の澱に潜む《影》の歪みが見える。'
+  },
+  {
+    phase: 'CASE FILE 02 // MYSTERY OF DISAPPEARANCES',
+    speaker: 'DETECTIVE KYO',
+    text: '近年、市民が夜霧の中に消える「神隠し事件」が相次いでいる。\n警察は事故と処理したが、私は現場の不可解な残響から、深淵と結ばれたある計画の存在を確信していた。'
+  },
+  {
+    phase: 'CASE FILE 03 // 20-DAY DEADLINE WARNING',
+    speaker: 'DETECTIVE KYO',
+    text: 'だが、残された時間は少ない。濃霧の周期が極まる【DAY 20】までに深淵の核心を暴かねば、この街全体が永遠の暗黒に沈む。\nエリア移動ごとに1日が経過する。一歩一歩が勝負だ。'
+  },
+  {
+    phase: 'CASE FILE 04 // 4 SUB-QUESTS & 10 TRUTHS',
+    speaker: 'DETECTIVE KYO',
+    text: '街のあちこちには、正式な依頼（サブ事件）や、綿密な推理を求める《全10問の真実の扉》が待ち受けている。\n推理を外せば信頼を失い、4度目の誤答で私の捜査は終わりを迎える。'
+  },
+  {
+    phase: 'CASE FILE 05 // ASTRAL BATTLE & 1 MORE',
+    speaker: 'DETECTIVE KYO',
+    text: '影の軍勢や守護者との戦いでは、相手の弱点属性を突き《1 MORE!!》を奪え！\n体勢を崩した敵に総攻撃《ABYSS BURST》を叩き込み、真実へと突き進む！'
+  },
+  {
+    phase: 'CASE FILE 06 // READY TO INVESTIGATE',
+    speaker: 'DETECTIVE KYO',
+    text: 'ランプに油を注ぎ、ノートを紐解こう。\n今、すべての霧を払う真実の捜査が始まる――！（このゲームは、証拠を集めて20日のうちに、街を救う推理ゲームです。難しい場合は、何回かやり直してください。そのうち真実がわかります。）'
+  }
+];
+
+let currentOpIdx = 0;
+function renderOpSlide() {
+  const s = OP_SLIDES[currentOpIdx];
+  document.getElementById('op-phase').textContent = s.phase;
+  document.getElementById('op-speaker').textContent = s.speaker;
+  document.getElementById('op-text').textContent = s.text;
+}
+
+function nextOpSlide() {
+  Sound.init();
+  Sound.seClick();
+  currentOpIdx++;
+  if (currentOpIdx >= OP_SLIDES.length) {
+    switchScreen('title-screen');
+  } else {
+    renderOpSlide();
+  }
+}
+
+function skipOpening() {
+  Sound.init();
+  Sound.seClick();
+  switchScreen('title-screen');
+}
+
+function replayOpening() {
+  Sound.init();
+  Sound.seClick();
+  currentOpIdx = 0;
+  renderOpSlide();
+  switchScreen('op-screen');
+}
+
+function switchScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+}
+
+function flashBanner(text, color = '#e6193c') {
+  const b = document.getElementById('banner-flash');
+  b.textContent = text;
+  b.style.background = color;
+  b.classList.add('show');
+  setTimeout(() => b.classList.remove('show'), 950);
+}
+/* =========================================================
+   4. 全敵キャラクター定義（現代編 ＋ 300年後・怪盗編）
+   ========================================================= */
+const ENEMIES = {
+  // --- 1周目（現代編）雑魚敵（全10種） ---
+  phantom_mist: { id: 'phantom_mist', name: '霧の妄執体', type: 'ABYSS PHANTOM', hp: 140, maxHp: 140, atk: 24, exp: 35, weak: 'fire', weakLabel: '火炎（紅蓮の推理）' },
+  shadow_hound: { id: 'shadow_hound', name: '深淵の黒猟犬', type: 'ASTRAL BEAST', hp: 155, maxHp: 155, atk: 27, exp: 40, weak: 'elec', weakLabel: '電撃（紫電の閃き）' },
+  clock_doll: { id: 'clock_doll', name: '逆回転のからくり人形', type: 'MECHANICAL SHADOW', hp: 165, maxHp: 165, atk: 28, exp: 45, weak: 'elec', weakLabel: '電撃（紫電の閃き）' },
+  abyss_soldier: { id: 'abyss_soldier', name: '朽ちた港湾警備兵', type: 'FALLEN SOLDIER', hp: 180, maxHp: 180, atk: 31, exp: 52, weak: 'fire', weakLabel: '火炎（紅蓮の推理）' },
+  siren_echo: { id: 'siren_echo', name: '浅瀬のセイレン幻影', type: 'ASTRAL PHANTOM', hp: 175, maxHp: 175, atk: 30, exp: 50, weak: 'elec', weakLabel: '電撃（紫電の閃き）' },
+  book_wraith: { id: 'book_wraith', name: '禁書喰らいのレイス', type: 'ARCANE WRAITH', hp: 195, maxHp: 195, atk: 34, exp: 58, weak: 'fire', weakLabel: '火炎（紅蓮の推理）' },
+  phantom_diver: { id: 'phantom_diver', name: '深海潜水夫の亡霊', type: 'DEEP DIVER', hp: 210, maxHp: 210, atk: 36, exp: 62, weak: 'ice', weakLabel: '氷結（大氷河期）' },
+  opera_phantom: { id: 'opera_phantom', name: '仮面の歌姫ファントム', type: 'ASTRAL DIVA', hp: 220, maxHp: 220, atk: 38, exp: 66, weak: 'ice', weakLabel: '氷結（大氷河期）' },
+  warden_guard: { id: 'warden_guard', name: '監獄塔の鉄鬼兵', type: 'IRON WARDEN', hp: 245, maxHp: 245, atk: 42, exp: 74, weak: 'elec', weakLabel: '電撃（紫電の閃き）' },
+  abyss_hydra: { id: 'abyss_hydra', name: '深淵の双頭ヒドラ', type: 'ABYSS BEAST', hp: 270, maxHp: 270, atk: 46, exp: 85, weak: 'truth', weakLabel: '万能・真実（真相暴露）' },
+
+  // --- 1周目（現代編）中ボス（4体）＆ ラスボス ---
+  gear_knight: {
+    id: 'gear_knight', name: '【中ボス】刻限の黒鉄騎士', type: 'MID-BOSS // 水門の歯車キー所持',
+    hp: 380, maxHp: 380, atk: 42, weak: 'elec', weakLabel: '電撃（紫電の閃き）',
+    isMidBoss: true, dropMsg: '中ボス撃破！第4埠頭の水門を開く《歯車キー》を手に入れた！', exp: 120
+  },
+  rail_reaper: {
+    id: 'rail_reaper', name: '【中ボス】冥府の車掌レールリーパー', type: 'MID-BOSS // ドーム制御コード所持',
+    hp: 450, maxHp: 450, atk: 47, weak: 'ice', weakLabel: '氷結（大氷河期）',
+    isMidBoss: true, dropMsg: '中ボス撃破！深海観測ドームの《端末制御コード》を手に入れた！', exp: 145
+  },
+  siren_shadow: {
+    id: 'siren_shadow', name: '【中ボス】嘆きのセイレーン影', type: 'MID-BOSS // 聖堂祭壇の結界主',
+    hp: 520, maxHp: 520, atk: 52, weak: 'truth', weakLabel: '万能・真実（真相暴露）',
+    isMidBoss: true, dropMsg: '中ボス撃破！水没聖堂の祭壇を覆っていた蒼い結界が消滅した！', exp: 170
+  },
+  warden_armor: {
+    id: 'warden_armor', name: '【中ボス】第零独房の看守長', type: 'MID-BOSS // 最深部の番人',
+    hp: 640, maxHp: 640, atk: 58, weak: 'elec', weakLabel: '電撃（紫電の閃き）',
+    isMidBoss: true, dropMsg: '中ボス撃破！《守護者の紋章》を手に入れ、キョウのHP/SP上限がさらに上昇した！', exp: 220
+  },
+  abyss_guardian: {
+    id: 'abyss_guardian', name: '深淵の簒奪者《アビス・モナーク》', type: 'FINAL BOSS // THE TRUE CULPRIT',
+    hp: 1050, maxHp: 1050, atk: 68, weak: 'truth', weakLabel: '万能・真実（真相暴露）',
+    isFinalBoss: true, exp: 999
+  },
+
+  // --- 2周目（300年後・怪盗編）強化雑魚敵（全9種） ---
+  f_drone: { id: 'f_drone', name: '魔導迎撃ドローン改', type: 'NEO SECURITY // Lv.12', hp: 310, maxHp: 310, atk: 52, exp: 90, weak: 'elec', weakLabel: '電撃（紫電の閃き）' },
+  f_hound: { id: 'f_hound', name: '黒鋼の魔導猟犬ケルベロス', type: 'CYBER BEAST // Lv.13', hp: 340, maxHp: 340, atk: 58, exp: 100, weak: 'ice', weakLabel: '氷結（大氷河期）' },
+  f_golem: { id: 'f_golem', name: '重装魔導機神ゴーレム', type: 'HEAVY MECH // Lv.14', hp: 390, maxHp: 390, atk: 62, exp: 115, weak: 'elec', weakLabel: '電撃（紫電の閃き）' },
+  f_diva: { id: 'f_diva', name: '幻惑のホログラム歌姫', type: 'ILLUSION DIVA // Lv.15', hp: 360, maxHp: 360, atk: 64, exp: 120, weak: 'truth', weakLabel: '万能・真実（真相暴露）' },
+  f_noble: { id: 'f_noble', name: '堕落した魔導貴族の影', type: 'CORRUPT NOBLE // Lv.15', hp: 380, maxHp: 380, atk: 66, exp: 125, weak: 'fire', weakLabel: '火炎（紅蓮の推理）' },
+  f_chimera: { id: 'f_chimera', name: '深淵合成獣キマイラ・ゼロ', type: 'BIO HORROR // Lv.16', hp: 430, maxHp: 430, atk: 70, exp: 140, weak: 'fire', weakLabel: '火炎（紅蓮の推理）' },
+  f_knight: { id: 'f_knight', name: '呪われた竜騎士ドラグーン', type: 'ABYSS KNIGHT // Lv.17', hp: 470, maxHp: 470, atk: 74, exp: 155, weak: 'ice', weakLabel: '氷結（大氷河期）' },
+  f_archon: { id: 'f_archon', name: '魔王軍・漆黒の執行官', type: 'DEMON ARCHON // Lv.18', hp: 510, maxHp: 510, atk: 78, exp: 170, weak: 'truth', weakLabel: '万能・真実（真相暴露）' },
+  f_reaper: { id: 'f_reaper', name: '煉獄の死神デス・ブリンガー', type: 'HELL REAPER // Lv.19', hp: 550, maxHp: 550, atk: 84, exp: 190, weak: 'phys', weakLabel: '物理（幾万の真言）' },
+
+  // --- 2周目（300年後・怪盗編）中ボス（3体）＆ 最強最悪の魔王 ---
+  f_boss_warden: {
+    id: 'f_boss_warden', name: '【魔導機神】オメガ・センチネル', type: 'FUTURE MID-BOSS // 空中港の守護機神',
+    hp: 680, maxHp: 680, atk: 72, weak: 'elec', weakLabel: '電撃（紫電の閃き）',
+    isMidBoss: true, dropMsg: '魔導機神を撃破！財団の《マスターセキュリティカード》を盗み出した！', exp: 250
+  },
+  f_boss_duke: {
+    id: 'f_boss_duke', name: '【魔王軍四天王】深淵公爵ベリアル', type: 'FUTURE MID-BOSS // 魔導炉の支配者',
+    hp: 820, maxHp: 820, atk: 80, weak: 'phys', weakLabel: '物理（幾万の真言）',
+    isMidBoss: true, dropMsg: '深淵公爵を撃破！《第一の聖遺物・太陽の王冠》を奪還した！', exp: 320
+  },
+  f_boss_general: {
+    id: 'f_boss_general', name: '【魔王軍総帥】堕天将軍ルシファー影', type: 'FUTURE MID-BOSS // 軌道要塞の総帥',
+    hp: 960, maxHp: 960, atk: 88, weak: 'truth', weakLabel: '万能・真実（真相暴露）',
+    isMidBoss: true, dropMsg: '堕天将軍を撃破！魔王玉座の封印を解く《深淵の魔導鍵》を手に入れた！', exp: 400
+  },
+  f_demon_lord: {
+    id: 'f_demon_lord', name: '【最強最悪の魔王】アビス・オーバーロード', type: 'TRUE DEMON LORD // 300年後の絶望',
+    hp: 1550, maxHp: 1550, atk: 98, weak: 'phys', weakLabel: '物理（幾万の真言）',
+    isFinalBoss: true, exp: 9999
+  }
+};
+
+const SKILLS = [
+  { id: 'slash', name: '幾万の真言（物理）', type: 'phys', spCost: 10, power: 250 },
+  { id: 'fire', name: '紅蓮の推理（火炎）', type: 'fire', spCost: 8, power: 56 },
+  { id: 'elec', name: '紫電の閃き（電撃）', type: 'elec', spCost: 8, power: 56 },
+  { id: 'ice', name: '大氷河期（氷結）', type: 'ice', spCost: 9, power: 60, reqSub1: true },
+  { id: 'truth', name: '真相暴露（万能・真実）', type: 'truth', spCost: 15, power: 200 },
+  { id: 'heal', name: '瞑想と珈琲（1戦2回まで）', type: 'heal', spCost: 14, power: 105 },
+  { id: 'guard', name: 'アストラル障壁（防御）', type: 'guard', spCost: 0, power: 0 },
+  { id: 'analyze', name: '探偵眼・アナライズ', type: 'analyze', spCost: 4, power: 0 }
+];
+/* =========================================================
+   5. 全11エリア定義（1周目：現代編 ／ 2周目：300年後・怪盗編）
+   ========================================================= */
+const LOCATIONS = [
+  { id: 'office', name: '01. キョウ探偵事務所', depth: 'DEPTH 0m // 調査拠点', chapter: 'ACT I // 霧の港湾都市', desc: '捜査の起点。ランプと珈琲、そして事件の書類がある。', enemyPool: [] },
+  { id: 'pier', name: '02. 第4埠頭・旧クレーン', depth: 'DEPTH 20m // 霧の波止場', chapter: 'ACT I // 霧の港湾都市', desc: '失踪者が最後に目撃された潮風と黒い油の埠頭。', enemyPool: ['phantom_mist', 'shadow_hound'] },
+  { id: 'archive', name: '03. 市立中央公文書館', depth: 'DEPTH 10m // 過去の記録層', chapter: 'ACT I // 霧の港湾都市', desc: '30年前の神隠し未解決ファイルを収蔵する古い書庫。', enemyPool: ['clock_doll', 'book_wraith'] },
+  { id: 'opera', name: '04. 水上歌劇場「アストラル座」', depth: 'DEPTH 40m // 偽りの喝采', chapter: 'ACT II // 仮面の夜会', desc: '黒い薔薇と奇怪な音楽が響き渡る廃劇場。', enemyPool: ['opera_phantom', 'siren_echo'] },
+  { id: 'hospital', name: '05. 聖ルカ旧精神療養棟', depth: 'DEPTH 60m // 記憶の隔離病棟', chapter: 'ACT II // 仮面の夜会', desc: '患者全員が記憶を奪われたまま置き去りにされた棟。', enemyPool: ['abyss_soldier', 'book_wraith'] },
+  { id: 'subway', name: '06. 旧地下貨物軌道跡', depth: 'DEPTH 90m // 鉄路の墓場', chapter: 'ACT II // 仮面の夜会', desc: '動かなくなった蒸気機関車と歯車の残骸が眠るトンネル。', shortcutLabel: '★SC: 事務所⇔地下', enemyPool: ['clock_doll', 'shadow_hound'] },
+  { id: 'dome', name: '07. 深海観測ドーム「ヴェリタス」', depth: 'DEPTH 150m // 水中封鎖域', chapter: 'ACT III // 深淵への潜航', desc: '人工のガラス越しに黒い海流が見下ろせる観測所。', enemyPool: ['phantom_diver', 'siren_echo'] },
+  { id: 'church', name: '08. 水没聖堂「グレイシア」', depth: 'DEPTH 220m // 聖印の回廊', chapter: 'ACT III // 深淵への潜航', desc: '讃美歌の幻聴がこだまする水底の白亜の聖堂。', enemyPool: ['abyss_hydra', 'phantom_diver'] },
+  { id: 'prison', name: '09. 深層監獄タワー', depth: 'DEPTH 350m // 封印の鉄塔', chapter: 'ACT III // 深淵への潜航', desc: '重厚な鉄の扉と不気味な警備網が張り巡らされた塔。', shortcutLabel: '★SC: 埠頭⇔監獄', enemyPool: ['warden_guard', 'abyss_soldier'] },
+  { id: 'abyss_core', name: '10. 太古の深淵回廊', depth: 'DEPTH 500m // 核心への階段', chapter: 'FINAL ACT // 真実の門', desc: '街の全濃霧の源流とされる、光の届かない神殿跡。', enemyPool: ['abyss_hydra', 'warden_guard'] },
+  { id: 'crown', name: '11. 深淵の王座（ラスボス戦域）', depth: 'DEPTH 777m // アビスの深奥', chapter: 'FINAL ACT // 真実の門', desc: '黒い皇帝と神隠しの真相が待ち受ける最終決戦の地。', enemyPool: [] }
+];
+
+const FUTURE_LOCATIONS = [
+  { id: 'office', name: '01. 怪盗アジト《クロック・ネスト》', depth: 'NEON LAYER 0 // 地下アジト', chapter: '300 YEARS LATER // 怪盗の予告状', desc: '300年後の超管理都市ネオ・アビスの地下に構えた怪盗キョウの秘密基地。', enemyPool: [] },
+  { id: 'pier', name: '02. 空中コンテナ港《スカイ・ドック》', depth: 'ALTITUDE +120m // 魔導港湾', chapter: '300 YEARS LATER // 怪盗の予告状', desc: '魔導財団が管理する浮遊貨物港。厳重なレーザー警備網が敷かれている。', enemyPool: ['f_drone', 'f_hound'] },
+  { id: 'archive', name: '03. 量子記憶アーカイブタワー', depth: 'ALTITUDE +250m // 禁断データ層', chapter: '300 YEARS LATER // 怪盗の予告状', desc: '300年前の「初代深淵の守護者」の記録が封印された超巨大サーバー塔。', enemyPool: ['f_golem', 'f_drone'] },
+  { id: 'opera', name: '04. 天空オペラ劇場《ミラージュ》', depth: 'ALTITUDE +400m // 貴族の仮面舞踏会', chapter: '300 YEARS LATER // 仮面の強奪劇', desc: '堕落した魔導貴族たちが夜な夜な集う空中劇場。秘宝が展示されている。', enemyPool: ['f_diva', 'f_noble'] },
+  { id: 'hospital', name: '05. 生体魔導ラボ《エデン第7区》', depth: 'DEPTH -80m // 禁忌の実験棟', chapter: '300 YEARS LATER // 仮面の強奪劇', desc: '枯渇した魔力を補うため人間の魂を抽出していた非人道研究施設。', enemyPool: ['f_chimera', 'f_golem'] },
+  { id: 'subway', name: '06. 廃墟の旧アビス地下鉄跡', depth: 'DEPTH -200m // 300年前の遺跡層', chapter: '300 YEARS LATER // 失われた遺産', desc: '300年前の都市がそのまま埋没した地下遺跡。★SC: アジト⇔旧遺跡', shortcutLabel: '★SC: アジト⇔旧遺跡', enemyPool: ['f_knight', 'f_hound'] },
+  { id: 'dome', name: '07. 深海魔導炉《コア・リアクター》', depth: 'DEPTH -450m // エネルギー中枢', chapter: '300 YEARS LATER // 失われた遺産', desc: '魔王復活の儀式に魔力を供給している巨大炉心ドーム。', enemyPool: ['f_chimera', 'f_diva'] },
+  { id: 'church', name: '08. 結晶化した水没聖堂跡', depth: 'DEPTH -600m // 聖遺物の眠る場所', chapter: '300 YEARS LATER // 聖遺物奪還', desc: '300年前にキョウが浄化した聖堂が蒼い魔晶石に覆われて残っている。', enemyPool: ['f_archon', 'f_knight'] },
+  { id: 'prison', name: '09. 魔王軍・軌道要塞《タルタロス》', depth: 'DEPTH -800m // 魔界ゲート前衛', chapter: '300 YEARS LATER // 魔王城潜入', desc: '魔王の親衛隊が守護する鉄壁の要塞。★SC: 港⇔軌道要塞', shortcutLabel: '★SC: 港⇔軌道要塞', enemyPool: ['f_archon', 'f_reaper'] },
+  { id: 'abyss_core', name: '10. 虚無の深淵回廊・煉獄門', depth: 'DEPTH -950m // 魔王の間への道', chapter: 'FINAL // 最強最悪の魔王', desc: '魔力が完全に枯渇し、物理と怪盗の技のみが頼りとなる最終回廊。', enemyPool: ['f_reaper', 'f_archon'] },
+  { id: 'crown', name: '11. 魔王玉座《アビス・パンデモニウム》', depth: 'DEPTH -1000m // 終焉の玉座', chapter: 'FINAL // 最強最悪の魔王', desc: '300年の時を経て完全復活を遂げた最強最悪の魔王が待ち受ける玉座。', enemyPool: [] }
+];
+/* =========================================================
+   6. 1周目（現代編）全11エリア調査スポット
+   ========================================================= */
+const SPOTS = {
+  office: [
+    {
+      id: 'desk_map',
+      type: 'INVESTIGATE // 捜査ボード',
+      title: '本棚の裏の隠し鉄扉',
+      desc: '特殊な歯車型の鍵穴がついた重厚な扉。',
+      action() {
+        if (!Game.clues.seal_card) {
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: '本棚の裏に地下軌道へ続く隠し鉄扉があるが、特殊な紋章ロックが掛かっている。まずは第4埠頭を調査しよう。'
+          };
+        }
+        if (!Game.solvedDeductions.ded_1) {
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: '鍵穴の形は第4埠頭の《黒い封蝋のカード》と一致する！右上の「推理・真実の扉」から《真実の扉Ⅰ》を解き明かそう！'
+          };
+        }
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '★SCが開通済みだ。左のマップから《06. 旧地下貨物軌道跡》へ0.5日でショートカット移動できる！'
+        };
+      }
+    },
+    {
+      id: 'gramophone',
+      type: 'EVIDENCE // 遺留品',
+      title: '古い蓄音機とキョウの手帳',
+      desc: '記憶を失う前の自分が書き残した革張りの手帳。',
+      action() {
+        gainClue('kyo_memo', 'キョウの古い手帳', '「深淵の守護者は敵ではない。街を呑み込む“本当の怪物”を封じている。隔離病棟の暗証番号は0413」という走り書き。');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '手帳の最後のページに自分の筆跡でメモが残っていた……「隔離病棟の暗証番号は0413」。どこかの電子ロックで使えそうだ！'
+        };
+      }
+    },
+    {
+      id: 'sub1_letter',
+      type: 'SUB-CASE 01 // 依頼受注スポット',
+      title: '【サブ事件①受注】消えた時計職人の遺書',
+      desc: '事務所のドア下に差し込まれていた差出人不明の封書。',
+      isSub: true,
+      action() {
+        Game.subAccepted.sub1 = true;
+        gainClue('watchmaker_note', '時計職人の遺書', '「市長に命じられ、旧地下軌道に“逆回転の仕掛け”を作らされた。秘密の設計図は地下軌道の歯車裏に隠した」');
+        return {
+          speaker: 'SUB-CASE 01 // 正式受注完了',
+          text: '【サブ事件①を受注しました！】\n行方不明になった老時計職人からの手紙だ。これで《06. 旧地下貨物軌道跡》の歯車裏から設計図を探せるようになったぞ！'
+        };
+      }
+    }
+  ],
+  pier: [
+    {
+      id: 'warehouse_lock',
+      type: 'CRIME SCENE // 密室現場',
+      title: '旧クレーン下の密室コンテナ',
+      desc: '最初の被害者が消えた施錠コンテナ。',
+      action() {
+        gainClue('seal_card', '黒い封蝋のカード', 'スートの無い真っ黒なトランプ。裏面に歯車と時計の紋章が刻まれている。');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: 'コンテナの床に《黒い封蝋のカード》が落ちていた！これで「真実の扉Ⅰ」を解くための決定的な証拠が揃った！'
+        };
+      }
+    },
+    {
+      id: 'pier_witness',
+      type: 'INTERROGATION // 聞き込み',
+      title: '老いた灯台守の証言',
+      desc: '事件の夜に霧の中で人影を見たという老人。',
+      action() {
+        gainClue('lighthouse_testimony', '灯台守の証言', '「消えた連中は皆、満潮の鐘が鳴ると同時に水門の奥へ歩いていったんじゃ。水門の鍵は地下軌道の黒鉄騎士が持っとる」');
+        return {
+          speaker: 'OLD KEEPER',
+          text: '「あの晩、埠頭の古い水門から蒼い光が漏れとった。水門を開けるには公文書館の設計図と、地下軌道の黒鉄騎士が持つ歯車キーが必要じゃよ」'
+        };
+      }
+    },
+    {
+      id: 'pier_sluice',
+      type: 'GIMMICK // 隠し水路門',
+      title: '錆びついた地下排水門',
+      desc: '水没聖堂へ直結しているという巨大水門。',
+      action() {
+        if (!Game.clues.blueprint || !Game.defeatedBosses.gear_knight) {
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: '頑丈な水門だ。開閉するには公文書館の《地下水道設計図》と、旧地下軌道の中ボス《刻限の黒鉄騎士》が持つ歯車キーが必要だ！'
+          };
+        }
+        if (!Game.unlockedLocs.includes('church')) {
+          unlockLocation('church');
+          Sound.seClue();
+          return {
+            speaker: 'SYSTEM // SHORTCUT UNLOCKED!',
+            text: '【★直通SC開通！】\n設計図通りにバルブを回し、黒鉄騎士の歯車キーを差し込んだ！\n《08. 水没聖堂「グレイシア」》へのルートが開通した！'
+          };
+        }
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '水没聖堂への直通水路は開通済みだ。いつでも海底遺跡層へ潜入できる。'
+        };
+      }
+    }
+  ],
+  archive: [
+    {
+      id: 'archive_blueprint',
+      type: 'EVIDENCE // 古文書',
+      title: 'アビス・ポート地下水道設計図',
+      desc: '100年前に描かれた街の地下構造図。',
+      action() {
+        gainClue('blueprint', '地下水道と聖堂の設計図', '第4埠頭の水門から海底の《水没聖堂》へ直接抜ける隠し水路の操作手順が記されている。');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '《地下水道と聖堂の設計図》を入手した！これで第4埠頭の水門の仕組みが分かったぞ！'
+        };
+      }
+    },
+    {
+      id: 'archive_shelf',
+      type: 'GIMMICK // 地下書庫の石壁',
+      title: '禁書コーナーの重い封印扉',
+      desc: '冷たい海風が吹き上げる最深部への入り口。',
+      action() {
+        if (!Game.clues.silver_key) {
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: '石壁の奥に巨大な螺旋階段がある気配がする。だが開けるには《聖堂の銀の鍵》が必要だ。'
+          };
+        }
+        if (!Game.unlockedLocs.includes('prison')) {
+          unlockLocation('prison');
+          Sound.seClue();
+          return {
+            speaker: 'SYSTEM // SHORTCUT UNLOCKED!',
+            text: '【★SC: 埠頭⇔監獄 開通！】\n《聖堂の銀の鍵》で石壁の封印を解除した！\n《09. 深層監獄タワー》へのショートカットが開通した！'
+          };
+        }
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '深層監獄タワーへのショートカットが開いている。'
+        };
+      }
+    },
+    {
+      id: 'sub2_ledger',
+      type: 'SUB-CASE 02 // 依頼受注スポット',
+      title: '【サブ事件②受注】消えた寄付金と孤児院の謎',
+      desc: '公文書館の床下に隠されていた黒い革表紙の会計簿。',
+      isSub: true,
+      action() {
+        Game.subAccepted.sub2 = true;
+        gainClue('black_ledger', '黒革の秘密会計簿', '「市長は街の孤児院への寄付金を横領し、海底施設建設に流用していた。証拠の印鑑は療養棟の院長室にある」');
+        return {
+          speaker: 'SUB-CASE 02 // 正式受注完了',
+          text: '【サブ事件②を受注しました！】\n孤児院の子供たちを苦しめていた資金横領の帳簿だ。これで《05. 聖ルカ旧精神療養棟》の院長室から裏印鑑を捜索できる！'
+        };
+      }
+    }
+  ],
+  opera: [
+    {
+      id: 'opera_mirror',
+      type: 'CRIME SCENE // 楽屋の密室',
+      title: '割れた化粧鏡と楽譜の暗号',
+      desc: '歌姫が消えた楽屋。鏡に赤いルージュで数字が書かれている。',
+      action() {
+        gainClue('opera_note', '歌姫の楽譜メモ', '「市長は毎週金曜、旧地下軌道から海底へ降りていく。秘密の合言葉は“満潮のレクイエム”」');
+        gainClue('alibi_sheet', '劇場関係者のアリバイ証言書', '「事件発生時刻の23:00、市長はオペラ座の貴賓席にいたと秘書は証言。だが同時刻、第4埠頭で市長の専用車が目撃されていた」');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '《歌姫の楽譜メモ》と《劇場関係者のアリバイ証言書》を入手！これで「真実の扉Ⅱ」と論理パズルの手がかりが揃った！'
+        };
+      }
+    },
+    {
+      id: 'opera_trapdoor',
+      type: 'GIMMICK // 舞台下の奈落エレベーター',
+      title: '海底観測ドームへ続く水密昇降機',
+      desc: '真実の扉Ⅱを突破することでロックが解除される地下連絡路。',
+      action() {
+        if (!Game.solvedDeductions.ded_2) {
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: '昇降機の制御盤がロックされている。右上の「推理・真実の扉」で《真実の扉Ⅱ》を解き明かせば、ここが開くはずだ！'
+          };
+        }
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '水密昇降機が稼働している。《07. 深海観測ドーム「ヴェリタス」》へ潜航可能だ！'
+        };
+      }
+    }
+  ],
+  hospital: [
+    {
+      id: 'hosp_karte',
+      type: 'EVIDENCE // 医療記録',
+      title: '半年前の海難事故・極秘カルテ',
+      desc: 'キョウが運び込まれた当時の診断書。',
+      action() {
+        gainClue('medical_record', 'キョウの極秘カルテ', '「患者は一度心停止したが、深淵の青い結晶と融合し蘇生した。担当医：市長直属の研究機関」');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: 'なんだと……俺は半年前の事故で一度死んでいたのか！？しかも市長直属の研究機関が関わっているとは！'
+        };
+      }
+    },
+    {
+      id: 'hosp_stamp',
+      type: 'SUB-CASE 02 // 調査スポット（要受注）',
+      title: '【サブ事件②証拠】横領された寄付金の裏印鑑',
+      desc: '旧精神療養棟の院長デスクの二重底。',
+      isSub: true,
+      action() {
+        if (!Game.subAccepted.sub2) {
+          Sound.seError();
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: 'デスクの二重底に怪しい印鑑箱があるが、今は関連する依頼を受けていないため手がかりが掴めない……。（※先に公文書館でサブ事件②を受注しよう）'
+          };
+        }
+        gainClue('mayor_seal', '市長の横領私印', '秘密会計簿に押されていたものと完全に一致する市長の偽造印鑑。');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '受注していたサブ事件②の決定的な証拠《市長の横領私印》を発見した！これで「真実の扉Ⅵ」を証明できるぞ！'
+        };
+      }
+    },
+    {
+      id: 'hosp_cipher',
+      type: 'CIPHER // 4桁の電子ロック扉',
+      title: '深海観測ドーム直通エレベーター',
+      desc: 'テンキー式の電子ロックが掛かった地下直通エレベーター。',
+      isCipher: true,
+      action() {
+        if (Game.unlockedLocs.includes('dome')) {
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: '直通エレベーターは開通済みだ。《07. 深海観測ドーム「ヴェリタス」》へいつでも直行できる！'
+          };
+        }
+        return {
+          speaker: 'SECURITY LOCK // 4-DIGIT CODE',
+          text: '【暗号ロック】4桁の暗証番号を入力せよ。（ヒント：事務所にあるキョウの古い手帳に数字が記されている）',
+          askCode: '0413',
+          onCodeSuccess() {
+            unlockLocation('dome');
+            Sound.seClue();
+            setDialogue('SYSTEM // SHORTCUT UNLOCKED!', '【直通エレベーター開通！】暗証番号《0413》が認証された！\n《07. 深海観測ドーム「ヴェリタス」》への直通ルートが開通した！');
+          }
+        };
+      }
+    }
+  ],
+  subway: [
+    {
+      id: 'subway_train',
+      type: 'INVESTIGATE // 廃線車両',
+      title: '市長専用・装甲地下鉄の記録ログ',
+      desc: '市民を海底へ輸送していた秘密列車の運行記録。',
+      action() {
+        gainClue('train_log', '秘密列車の運行ログ', '「神隠しとされた市民は殺されておらず、先代の“深淵の守護者”によって安全なシェルターへ保護されていた。時計の針は逆回転の13時を示している」');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: 'そうだったのか！初代“深淵の守護者”は市民をさらったのではなく、市長の生贄儀式から守るために保護していたんだ！'
+        };
+      }
+    },
+    {
+      id: 'sub1_blueprint',
+      type: 'SUB-CASE 01 // 調査スポット（要受注）',
+      title: '【サブ事件①証拠】時計職人の秘密設計図',
+      desc: '旧地下軌道の巨大歯車裏に隠された金属製の小箱。',
+      isSub: true,
+      action() {
+        if (!Game.subAccepted.sub1) {
+          Sound.seError();
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: '巨大な歯車の裏に何か挟まっているが、今は関連する依頼を受けていないため意味が分からない……。（※先に探偵事務所でサブ事件①を受注しよう）'
+          };
+        }
+        gainClue('clock_trap_plan', '逆回転時計の秘密設計図', '時計職人が密かに組み込んでいた緊急停止装置の図面。市長の儀式装置を逆流させる鍵となる。');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '受注していたサブ事件①の証拠《逆回転時計の秘密設計図》を手に入れた！これで「真実の扉Ⅴ」を証明できるぞ！'
+        };
+      }
+    },
+    {
+      id: 'sub3_passenger',
+      type: 'SUB-CASE 03 // 依頼受注スポット',
+      title: '【サブ事件③受注】涙を流す少女の幻影',
+      desc: '廃駅ホームのベンチで誰かを待ち続けている蒼い影の少女。',
+      isSub: true,
+      action() {
+        Game.subAccepted.sub3 = true;
+        gainClue('girl_pendant', '蒼い涙のペンダント', '半年前の海難事故でキョウを庇って深淵に飲まれた初代守護者の妹・リナの形見。');
+        return {
+          speaker: 'SUB-CASE 03 // 正式受注完了（LINA）',
+          text: '【サブ事件③を受注しました！】\n「……お兄ちゃんを、深淵の呪いから解放して……私のペンダントを《08. 水没聖堂「グレイシア」》の鎮魂碑に捧げてほしいの……」'
+        };
+      }
+    },
+    {
+      id: 'subway_boss',
+      type: 'MID-BOSS // 封印の守護影',
+      title: '【中ボス】刻限の黒鉄騎士',
+      desc: '第4埠頭の水門を開く「歯車キー」を守る重装甲の影。',
+      isBoss: true,
+      action() {
+        startBattle('gear_knight');
+        return { speaker: 'SYSTEM', text: '旧地下軌道の守護影《刻限の黒鉄騎士》が立ちはだかった！' };
+      }
+    }
+  ],
+  dome: [
+    {
+      id: 'dome_terminal',
+      type: 'CIPHER // メイン制御端末',
+      title: '市長の極秘実験データ端末',
+      desc: '深層監獄タワーのロックナンバーが記録された端末。',
+      action() {
+        if (!Game.defeatedBosses.rail_reaper) {
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: '端末にセキュリティロックが掛かっている！このドームに潜む中ボス《冥府の車掌レールリーパー》が持つ制御コードが必要だ！'
+          };
+        }
+        gainClue('abyss_code', '深淵監獄の解除コード《7749》', '深層監獄タワーの鉄格子を開放し、初代守護者の記録にアクセスするためのマスターコード。');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '制御コードで端末をハッキングした！《深淵監獄の解除コード：7749》を入手！'
+        };
+      }
+    },
+    {
+      id: 'sub4_sos',
+      type: 'SUB-CASE 04 // 依頼受注スポット',
+      title: '【サブ事件④受注】深海調査船の遭難通信記録',
+      desc: '観測ドームの片隅で点滅し続けている古い無線機。',
+      isSub: true,
+      action() {
+        Game.subAccepted.sub4 = true;
+        gainClue('sos_log', '調査船オリオン号の通信記録', '「深淵の底で市長の秘密実験を目撃した……ブラックボックスは《08. 水没聖堂》の祭壇裏に隠した。誰か真実を伝えてくれ……」');
+        return {
+          speaker: 'SUB-CASE 04 // 正式受注完了',
+          text: '【サブ事件④を受注しました！】\n行方不明になっていた調査船クルーの遺言通信だ！これで《08. 水没聖堂「グレイシア」》からブラックボックスを回収できる！'
+        };
+      }
+    },
+    {
+      id: 'dome_boss',
+      type: 'MID-BOSS // 廃線の亡霊車掌',
+      title: '【中ボス】冥府の車掌レールリーパー',
+      desc: '深海ドームの制御コードを握る氷結の怪異。',
+      isBoss: true,
+      action() {
+        startBattle('rail_reaper');
+        return { speaker: 'SYSTEM', text: '深海ドームの守護影《レールリーパー》が襲いかかってきた！' };
+      }
+    }
+  ],
+  church: [
+    {
+      id: 'cathedral_altar',
+      type: 'EVIDENCE // 水没祭壇',
+      title: 'ステンドグラス下の古代祭壇',
+      desc: '守護影を倒した者だけが触れられる聖なる祭壇。',
+      action() {
+        if (!Game.defeatedBosses.siren_shadow) {
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: '祭壇は蒼い結界に守られている！まずはこの聖堂の守護影《嘆きのセイレーン影》を撃破しなければ！'
+          };
+        }
+        gainClue('silver_key', '聖堂の銀の鍵', '公文書館の地下書庫から《深層監獄タワー》へ直通する封印を解く銀鍵。');
+        gainClue('mayor_pact', '市長と深淵の密約書', '市長が自らの不老不死のために市民の魂を深淵へ捧げていた決定的な証拠。');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '結界が消えた祭壇から《聖堂の銀の鍵》と《市長の密約書》を入手した！これで公文書館から深層監獄タワーへ直通できる！'
+        };
+      }
+    },
+    {
+      id: 'sub3_monument',
+      type: 'SUB-CASE 03 // 調査スポット（要受注）',
+      title: '【サブ事件③証拠】初代守護者と妹の鎮魂碑',
+      desc: '聖堂の片隅にひっそりと建つ蒼い水晶の石碑。',
+      isSub: true,
+      action() {
+        if (!Game.subAccepted.sub3 || !Game.clues.girl_pendant) {
+          Sound.seError();
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: '石碑の中央にペンダント型のくぼみがある。廃駅ホームの少女の幻影から依頼を受注し、形見を受け取る必要がある。'
+          };
+        }
+        gainClue('requiem_crest', '深淵鎮魂の聖印', 'ペンダントを捧げたことで現れた聖印。初代守護者兄妹の魂がキョウに最後の加護を与えた証。');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '受注していたサブ事件③の証拠《深淵鎮魂の聖印》を入手した！これで「真実の扉Ⅶ」を解き明かすことができる！'
+        };
+      }
+    },
+    {
+      id: 'sub4_blackbox',
+      type: 'SUB-CASE 04 // 調査スポット（要受注）',
+      title: '【サブ事件④証拠】深海調査船のブラックボックス',
+      desc: '祭壇の裏側の水草に絡まっていた耐圧記録装置。',
+      isSub: true,
+      action() {
+        if (!Game.subAccepted.sub4) {
+          Sound.seError();
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: '耐圧金属の箱が沈んでいるが、ロックの解除方法が分からない……。（※先に深海観測ドームでサブ事件④を受注しよう）'
+          };
+        }
+        gainClue('blackbox_data', 'オリオン号の映像ブラックボックス', '市長が深淵の核に禁断の薬品を投入し、街全体の濃霧を意図的に発生させた決定的映像データ。');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '受注していたサブ事件④の証拠《オリオン号の映像ブラックボックス》を回収した！これで「真実の扉Ⅷ」を証明できる！'
+        };
+      }
+    },
+    {
+      id: 'cathedral_boss',
+      type: 'MID-BOSS // 聖堂の守護影',
+      title: '【中ボス】嘆きのセイレーン影',
+      desc: '祭壇の結界を維持する海神の影。',
+      isBoss: true,
+      action() {
+        startBattle('siren_shadow');
+        return { speaker: 'SYSTEM', text: '水没聖堂の守護影《嘆きのセイレーン影》が現れた！' };
+      }
+    }
+  ],
+  prison: [
+    {
+      id: 'prison_cell0',
+      type: 'CIPHER // 第零独房の電子錠',
+      title: '初代「深淵の守護者」の独房',
+      desc: '4桁のマスターコードで封印された最深部の独房。',
+      isCipher: true,
+      action() {
+        if (Game.clues.true_identity) {
+          return {
+            speaker: 'DETECTIVE KYO',
+            text: '独房の中で《キョウの真実の記憶》を取り戻した！右上の「推理・真実の扉」で《真実の扉Ⅳ》を突破すれば最深部への道が開く！'
+          };
+        }
+        return {
+          speaker: 'PRISON LOCK // MASTER CODE',
+          text: '【マスターコード入力】深海観測ドームの端末で入手した4桁の解除コードを入力せよ。',
+          askCode: '7749',
+          onCodeSuccess() {
+            gainClue('true_identity', 'キョウの真実の記憶', '半年前の海難事故で命を落とした探偵キョウに、初代守護者が自らの魂とアストラル・アイを託していた事実。');
+            setDialogue('DETECTIVE KYO', 'コード認証成功！独房の鏡を見た瞬間、すべての記憶が蘇った……俺自身が二代目《深淵の守護者》だったんだ！');
+          }
+        };
+      }
+    },
+    {
+      id: 'prison_boss',
+      type: 'MID-BOSS // 監獄の番人',
+      title: '【中ボス】第零独房の看守長',
+      desc: '最終決戦を前にキョウの覚悟を試す鋼鉄の巨影。',
+      isBoss: true,
+      action() {
+        startBattle('warden_armor');
+        return { speaker: 'SYSTEM', text: '第零独房の看守長が巨大な戦斧を構えた！' };
+      }
+    }
+  ],
+  abyss_core: [
+    {
+      id: 'core_monolith',
+      type: 'INVESTIGATE // 深淵の石碑',
+      title: '太古の封印石碑と暗号盤',
+      desc: '深淵の王座へ至る最後の論理パズル（真実の扉Ⅹ）のヒントが刻まれた石碑。',
+      action() {
+        gainClue('abyss_tablet', '太古の封印石碑の碑文', '「真の守護者は、①霧の時刻（13時）、②隔離病棟の鍵（0413）、③監獄のコード（7749）の順に深淵を調律する」');
+        return {
+          speaker: 'DETECTIVE KYO',
+          text: '石碑の碑文《太古の封印石碑の碑文》を記録した！最後の論理パズル「真実の扉Ⅹ」を解く決定的な鍵だ！'
+        };
+      }
+    }
+  ],
+  crown: [
+    {
+      id: 'final_throne',
+      type: 'FINAL BOSS // 終焉の決戦',
+      title: '【ラスボス】深淵の簒奪者《アビス・モナーク》',
+      desc: '深淵の力を取り込み怪物と化した市長。すべての決着をつけろ！',
+      isBoss: true,
+      action() {
+        startBattle('abyss_guardian');
+        return { speaker: 'ABYSS MONARCH', text: '「よくぞここまで辿り着いたな、二代目・深淵の守護者よ……！この玉座で貴様の魂も喰らい尽くしてくれる！」' };
+      }
+    }
+  ]
+};
+/* =========================================================
+   7. 2周目（300年後・怪盗編）全11エリア調査スポット
+   ========================================================= */
+const FUTURE_SPOTS = {
+  office: [
+    {
+      id: 'f_board',
+      type: 'PHANTOM BOARD // 怪盗の予告状ボード',
+      title: '【怪盗任務】魔導財団への予告状作成',
+      desc: '300年後のネオ・アビスを牛耳る財団と魔王復活計画の調査ボード。',
+      action() {
+        gainClue('f_notice', '怪盗ファントムの予告状', '「今宵、魔導財団が隠蔽する『三つの聖遺物』と魔王復活の秘密を頂戴する――怪盗ファントム・キョウ」');
+        return {
+          speaker: 'PHANTOM KYO',
+          text: '300年前の先祖・探偵キョウが残した記録によれば、魔力が枯渇した現代では魔法は本来の半分ほどしか威力が出ない。物理技と怪盗スキルを駆使して秘宝を奪還しよう！'
+        };
+      }
+    },
+    {
+      id: 'f_sub1_req',
+      type: 'SUB-CASE 01 // 怪盗依頼受注',
+      title: '【怪盗依頼①受注】奪われた星詠みの懐中時計',
+      desc: 'アジトの暗号端末に届いた匿名レジスタンスからの依頼。',
+      isSub: true,
+      action() {
+        Game.subAccepted.sub1 = true;
+        gainClue('f_watch_req', 'レジスタンスの依頼書', '「天空オペラ劇場の貴賓金庫に保管されている『星詠みの懐中時計』を盗み出してほしい。金庫番号は劇場の楽譜にある」');
+        return {
+          speaker: 'SUB-CASE 01 // 正式受注完了',
+          text: '【怪盗依頼①を受注しました！】\n天空オペラ劇場《ミラージュ》から「星詠みの懐中時計」を盗み出そう！'
+        };
+      }
+    }
+  ],
+  pier: [
+    {
+      id: 'f_pier_vault',
+      type: 'HEIST // 魔導コンテナ強奪',
+      title: '財団の極秘輸送コンテナ',
+      desc: '厳重なロックが掛かった特級コンテナ。',
+      action() {
+        if (!Game.defeatedBosses.f_boss_warden) {
+          return {
+            speaker: 'PHANTOM KYO',
+            text: 'コンテナの周囲を《魔導機神オメガ・センチネル》が巡回している！まずは機神を撃破してセキュリティカードを奪おう！'
+          };
+        }
+        gainClue('f_card_key', '財団のマスターセキュリティカード', '量子記憶アーカイブタワーの封印ゲートを解除する最高権限カード。');
+        return {
+          speaker: 'PHANTOM KYO',
+          text: 'コンテナから《財団のマスターセキュリティカード》を華麗に盗み出した！これで「怪盗推理Ⅰ」を突破できるぞ！'
+        };
+      }
+    },
+    {
+      id: 'f_pier_boss',
+      type: 'MID-BOSS // 空中港の守護機神',
+      title: '【中ボス】魔導機神オメガ・センチネル',
+      desc: '空中コンテナ港を守護する巨大魔導兵器。',
+      isBoss: true,
+      action() {
+        startBattle('f_boss_warden');
+        return { speaker: 'SYSTEM', text: '魔導機神オメガ・センチネルがレーザー照準を合わせてきた！' };
+      }
+    }
+  ],
+  archive: [
+    {
+      id: 'f_arch_data',
+      type: 'HACKING // 300年前の極秘ログ',
+      title: '初代守護者キョウの遺産データ',
+      desc: '量子サーバーの最深部に眠る300年前の記録。',
+      action() {
+        gainClue('f_legacy_log', '300年前の守護者記録', '「魔王アビス・オーバーロードは魔力攻撃に強い耐性を持つ。だが、物理の連撃と『三つの聖遺物』の共鳴には弱い。暗号は3009」');
+        return {
+          speaker: 'PHANTOM KYO',
+          text: '先祖の記録をハッキングした！《300年前の守護者記録》を入手！生体魔導ラボの暗証番号「3009」も判明したぞ！'
+        };
+      }
+    },
+    {
+      id: 'f_sub2_req',
+      type: 'SUB-CASE 02 // 怪盗依頼受注',
+      title: '【怪盗依頼②受注】偽造された魔導特許の原盤',
+      desc: 'アーカイブの隅に隠された内部告発データ。',
+      isSub: true,
+      action() {
+        Game.subAccepted.sub2 = true;
+        gainClue('f_patent_req', '内部告発メモ', '「財団総帥が市民から魔力を搾取するために偽造した特許原盤が、生体魔導ラボの金庫に隠されている」');
+        return {
+          speaker: 'SUB-CASE 02 // 正式受注完了',
+          text: '【怪盗依頼②を受注しました！】\n生体魔導ラボ《エデン第7区》から偽造特許原盤を盗み出そう！'
+        };
+      }
+    }
+  ],
+  opera: [
+    {
+      id: 'f_opera_score',
+      type: 'HEIST // 貴族の仮面舞踏会',
+      title: '貴賓席の黄金の楽譜と第二の聖遺物',
+      desc: 'スポットライトの下に展示された《月の聖杯》。',
+      action() {
+        gainClue('f_relic_2', '第二の聖遺物・月の聖杯', '天空オペラ劇場の展示ケースから煙幕を使って鮮やかにすり替えた聖遺物。楽譜の裏に「金庫番号：8821」のメモがある。');
+        return {
+          speaker: 'PHANTOM KYO',
+          text: '鮮やかに《第二の聖遺物・月の聖杯》を盗み出した！さらに楽譜の裏から金庫番号「8821」も入手！'
+        };
+      }
+    },
+    {
+      id: 'f_sub1_heist',
+      type: 'SUB-CASE 01 // 怪盗金庫（要受注）',
+      title: '【怪盗依頼①】貴賓室のダイヤル金庫',
+      desc: '4桁の暗証番号で守られた小型金庫。',
+      isSub: true,
+      isCipher: true,
+      action() {
+        if (!Game.subAccepted.sub1) {
+          Sound.seError();
+          return { speaker: 'PHANTOM KYO', text: '金庫があるが、まだ関連する怪盗依頼を受注していない。（※アジトで依頼①を受注しよう）' };
+        }
+        if (Game.clues.f_star_watch) {
+          return { speaker: 'PHANTOM KYO', text: 'すでに《星詠みの懐中時計》は盗み出し済みだ！' };
+        }
+        return {
+          speaker: 'VAULT LOCK // 4-DIGIT',
+          text: '【金庫ロック】楽譜の裏に記されていた4桁の金庫番号を入力せよ。',
+          askCode: '8821',
+          onCodeSuccess() {
+            gainClue('f_star_watch', '星詠みの懐中時計', '時空の歪みを感知する古代の懐中時計。怪盗の回避・クリティカルを高める秘宝。');
+            setDialogue('PHANTOM KYO', '金庫解錠成功！《星詠みの懐中時計》を盗み出した！これで「怪盗推理Ⅳ」を解決できるぞ！');
+          }
+        };
+      }
+    }
+  ],
+  hospital: [
+    {
+      id: 'f_lab_cipher',
+      type: 'CIPHER // 生体ラボの隔壁ロック',
+      title: '深海魔導炉への直通昇降機',
+      desc: '4桁のセキュリティコードが必要な重厚な隔壁。',
+      isCipher: true,
+      action() {
+        if (Game.unlockedLocs.includes('dome')) {
+          return { speaker: 'PHANTOM KYO', text: '直通昇降機はすでにハッキング済みだ。《07. 深海魔導炉》へ移動できる！' };
+        }
+        return {
+          speaker: 'LAB SECURITY // 4-DIGIT',
+          text: '【電子ロック】量子アーカイブで入手した4桁の暗証番号を入力せよ。',
+          askCode: '3009',
+          onCodeSuccess() {
+            unlockLocation('dome');
+            Sound.seClue();
+            setDialogue('PHANTOM KYO', 'コード認証完了！《07. 深海魔導炉《コア・リアクター》》へのルートが開通した！');
+          }
+        };
+      }
+    },
+    {
+      id: 'f_sub2_heist',
+      type: 'SUB-CASE 02 // 怪盗ターゲット（要受注）',
+      title: '【怪盗依頼②】偽造魔導特許の原盤データ',
+      desc: 'ラボの最奥サーバーに保管された極秘原盤。',
+      isSub: true,
+      action() {
+        if (!Game.subAccepted.sub2) {
+          Sound.seError();
+          return { speaker: 'PHANTOM KYO', text: '厳重なプロテクトが掛かっている。先に量子アーカイブで依頼②を受注しよう。' };
+        }
+        gainClue('f_fake_patent', '偽造魔導特許の原盤', '財団の悪事を完全に証明する決定的なデータ原盤。');
+        return {
+          speaker: 'PHANTOM KYO',
+          text: '鮮やかに《偽造魔導特許の原盤》を抜き取った！これで「怪盗推理Ⅴ」を突破できるぞ！'
+        };
+      }
+    }
+  ],
+  subway: [
+    {
+      id: 'f_sub_relic3',
+      type: 'EVIDENCE // 300年前の遺産',
+      title: '初代キョウが遺した《第三の聖遺物・星の羅針盤》',
+      desc: '旧アビス地下鉄の秘密基地跡に隠されていた蒼い羅針盤。',
+      action() {
+        gainClue('f_relic_3', '第三の聖遺物・星の羅針盤', '300年前に初代守護者キョウが未来の継承者のために遺した聖遺物。');
+        return {
+          speaker: 'PHANTOM KYO',
+          text: '《第三の聖遺物・星の羅針盤》を手に入れた！これが先祖からの贈り物か……！'
+        };
+      }
+    }
+  ],
+  dome: [
+    {
+      id: 'f_dome_boss',
+      type: 'MID-BOSS // 魔王軍四天王',
+      title: '【中ボス】深淵公爵ベリアル',
+      desc: '魔導炉のエネルギーを吸収して待ち構える魔王軍の幹部。',
+      isBoss: true,
+      action() {
+        startBattle('f_boss_duke');
+        return { speaker: 'DEMON DUKE BELIAL', text: '「小賢しい怪盗め！枯渇した魔力で我ら魔王軍に勝てると思うなよ！」' };
+      }
+    },
+    {
+      id: 'f_dome_relic1',
+      type: 'HEIST // 炉心の聖遺物奪還',
+      title: '魔導炉中央の《第一の聖遺物・太陽の王冠》',
+      desc: '四天王ベリアルが守護していた最大の聖遺物。',
+      action() {
+        if (!Game.defeatedBosses.f_boss_duke) {
+          return { speaker: 'PHANTOM KYO', text: '深淵公爵ベリアルが王冠の前に立ち塞がっている！まずは奴を倒さなければ！' };
+        }
+        gainClue('f_relic_1', '第一の聖遺物・太陽の王冠', '三つの聖遺物の中で最強の輝きを放つ王冠。魔王の不死身の結界を打ち砕く鍵。');
+        return {
+          speaker: 'PHANTOM KYO',
+          text: '《第一の聖遺物・太陽の王冠》を奪還した！これで三つの聖遺物がすべて揃ったぞ！'
+        };
+      }
+    }
+  ],
+  church: [
+    {
+      id: 'f_church_altar',
+      type: 'RITUAL // 三つの聖遺物の共鳴',
+      title: '結晶化した古代祭壇',
+      desc: '三つの聖遺物を捧げることで真の力を解放する祭壇。',
+      action() {
+        if (!Game.clues.f_relic_1 || !Game.clues.f_relic_2 || !Game.clues.f_relic_3) {
+          return { speaker: 'PHANTOM KYO', text: '祭壇には3つのくぼみがある。《太陽の王冠》《月の聖杯》《星の羅針盤》をすべて集めてから来よう！' };
+        }
+        gainClue('f_sacred_emblem', '三聖遺物共鳴の紋章', '太陽・月・星の三つの聖遺物が一つに共鳴し、弱体化していたキョウの攻撃力を極限まで引き上げる聖紋章。');
+        Game.awakened = true;
+        return {
+          speaker: 'PHANTOM KYO',
+          text: '三つの聖遺物が蒼い光を放ち共鳴した！《三聖遺物共鳴の紋章》を入手し、キョウの力が第二覚醒した！'
+        };
+      }
+    }
+  ],
+  prison: [
+    {
+      id: 'f_prison_boss',
+      type: 'MID-BOSS // 魔王軍総帥',
+      title: '【中ボス】堕天将軍ルシファー影',
+      desc: '魔王玉座への最終ゲートを守る最強の親衛隊長。',
+      isBoss: true,
+      action() {
+        startBattle('f_boss_general');
+        return { speaker: 'GENERAL LUCIFER', text: '「ここが貴様の墓場だ、怪盗キョウ！魔王様の復活は誰にも止められん！」' };
+      }
+    }
+  ],
+  abyss_core: [
+    {
+      id: 'f_core_gate',
+      type: 'INVESTIGATE // 煉獄の封印扉',
+      title: '魔王玉座へ続く最終封印',
+      desc: '右上の「推理・真実の扉」で全6問の怪盗推理を解き明かすことで開かれる扉。',
+      action() {
+        return {
+          speaker: 'PHANTOM KYO',
+          text: '扉の先から最強最悪の魔王《アビス・オーバーロード》の圧倒的なプレッシャーを感じる……。右上の「推理・真実の扉」で最後の推理を突破し、決戦に挑もう！'
+        };
+      }
+    }
+  ],
+  crown: [
+    {
+      id: 'f_final_demon',
+      type: 'TRUE DEMON LORD // 最強最悪の魔王',
+      title: '【最終決戦】最強最悪の魔王《アビス・オーバーロード》',
+      desc: '300年の絶望を体現する究極の魔王。魔法耐性を持つ最強の敵を打ち倒せ！',
+      isBoss: true,
+      action() {
+        startBattle('f_demon_lord');
+        return { speaker: 'ABYSS OVERLORD', text: '「ククク……300年前の守護者の末裔か！魔力なきこの時代で、余を倒せるものならやってみよ！！」' };
+      }
+    }
+  ]
+};
+/* =========================================================
+   8. 1周目（現代編）全10問の推理＆論理パズルデータ
+   ========================================================= */
+const DEDUCTIONS = [
+  {
+    id: 'ded_1',
+    title: '真実の扉Ⅰ：事務所の本棚のロックを解除する鍵',
+    question: 'Q1. 探偵事務所の本棚の裏にある歯車型の鍵穴。これと全く同じ紋章が刻まれていた現場の遺留品はどれだ？',
+    answerClue: 'seal_card',
+    hint: '第4埠頭の密室コンテナで発見した遺留品を調べよう。',
+    rewardText: '★SC開通！《06. 旧地下貨物軌道跡》が解放＆最大HP/SP上昇！',
+    onSolve() {
+      unlockLocation('subway');
+      Game.maxHp += 35;
+      Game.hp = Game.maxHp;
+      Game.maxSp += 15;
+      Game.sp = Game.maxSp;
+      Game.level = Math.max(Game.level, 2);
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'ded_2',
+    title: '真実の扉Ⅱ：水上歌劇場から海底へ降りる手がかり',
+    question: 'Q2. 市長が毎週金曜日に海底へ降りる際に使っていた秘密ルートが記されていた証拠品はどれだ？',
+    answerClue: 'opera_note',
+    hint: '水上歌劇場「アストラル座」の楽屋を調査しよう。',
+    rewardText: '★ルート開通！《07. 深海観測ドーム「ヴェリタス」》が解放＆最大HP/SP上昇！',
+    onSolve() {
+      unlockLocation('dome');
+      Game.maxHp += 40;
+      Game.hp = Game.maxHp;
+      Game.maxSp += 15;
+      Game.sp = Game.maxSp;
+      Game.level = Math.max(Game.level, 3);
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'ded_3',
+    title: '真実の扉Ⅲ：連続神隠し事件の真の目的と黒幕の証明',
+    question: 'Q3. 市長が不老不死のために市民の魂を深淵へ捧げていた決定的な契約書はどれだ？',
+    answerClue: 'mayor_pact',
+    hint: '水没聖堂の中ボスを撃破し、結界が消えた祭壇を調べよう。',
+    rewardText: 'アストラル・アイ《タナトス・サイト》第二覚醒！全攻撃威力＆弱点看破が大幅強化！',
+    onSolve() {
+      Game.awakened = true;
+      Game.maxHp += 50;
+      Game.hp = Game.maxHp;
+      Game.maxSp += 25;
+      Game.sp = Game.maxSp;
+      Game.level = Math.max(Game.level, 4);
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'ded_4',
+    title: '真実の扉Ⅳ：太古の深淵回廊への封印解除',
+    question: 'Q4. キョウ自身が先代から力を受け継いだ「二代目・深淵の守護者」である証となる記憶はどれだ？',
+    answerClue: 'true_identity',
+    hint: '深海観測ドームの解除コードを使い、深層監獄タワー・第零独房の電子錠を開けよう。',
+    rewardText: '★深層ルート開通！《10. 太古の深淵回廊》への封印が解放！',
+    onSolve() {
+      unlockLocation('abyss_core');
+      Game.maxHp += 65;
+      Game.hp = Game.maxHp;
+      Game.maxSp += 30;
+      Game.sp = Game.maxSp;
+      Game.level = Math.max(Game.level, 5);
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'ded_5',
+    isSub: true,
+    reqSubKey: 'sub1',
+    title: '【サブ事件①】真実の扉Ⅴ：逆回転時計に仕込まれた緊急停止装置',
+    question: 'Q5. 消えた時計職人が市長の儀式装置を逆流させるために旧地下軌道の歯車裏に隠した設計図はどれだ？',
+    answerClue: 'clock_trap_plan',
+    hint: '事務所でサブ事件①を受注した後、旧地下軌道の歯車裏を調べよう。',
+    rewardText: '【サブ事件①解決】奥義《大氷河期（氷結属性）》を習得！',
+    onSolve() {
+      Game.subSolved.sub1 = true;
+      Game.maxHp += 30;
+      Game.hp = Game.maxHp;
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'ded_6',
+    isSub: true,
+    reqSubKey: 'sub2',
+    title: '【サブ事件②】真実の扉Ⅵ：孤児院寄付金横領の決定的物証',
+    question: 'Q6. 公文書館の裏帳簿に押されていた不正送金の印影と一致する、旧精神療養棟の院長室から見つかった証拠はどれだ？',
+    answerClue: 'mayor_seal',
+    hint: '公文書館でサブ事件②を受注した後、旧精神療養棟の院長デスクを調べよう。',
+    rewardText: '【サブ事件②解決】全スキルの消費SPが軽減され、最大SP+35！',
+    onSolve() {
+      Game.subSolved.sub2 = true;
+      Game.maxSp += 35;
+      Game.sp = Game.maxSp;
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'ded_7',
+    isSub: true,
+    reqSubKey: 'sub3',
+    title: '【サブ事件③】真実の扉Ⅶ：初代守護者兄妹の魂の解放',
+    question: 'Q7. 旧地下軌道の少女リナの形見を水没聖堂の石碑に捧げたことで得られた、真なる加護の証はどれだ？',
+    answerClue: 'requiem_crest',
+    hint: '旧地下軌道でサブ事件③を受注してペンダントを受け取り、水没聖堂の石碑を調べよう。',
+    rewardText: '【サブ事件③解決】総攻撃（ABYSS BURST）の威力が極限進化！',
+    onSolve() {
+      Game.subSolved.sub3 = true;
+      Game.maxHp += 50;
+      Game.hp = Game.maxHp;
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'ded_8',
+    isSub: true,
+    reqSubKey: 'sub4',
+    title: '【サブ事件④】真実の扉Ⅷ：濃霧発生の人工的証拠',
+    question: 'Q8. 調査船オリオン号のクルーが命を懸けて水没聖堂の祭壇裏に隠した、市長の犯罪映像記録はどれだ？',
+    answerClue: 'blackbox_data',
+    hint: '深海観測ドームでサブ事件④を受注した後、水没聖堂の祭壇裏を調べよう。',
+    rewardText: '【サブ事件④解決】全攻撃クリティカル＆最終奥義威力が大幅アップ！',
+    onSolve() {
+      Game.subSolved.sub4 = true;
+      Game.maxHp += 45;
+      Game.hp = Game.maxHp;
+      Game.maxSp += 20;
+      Game.sp = Game.maxSp;
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'ded_9',
+    isPuzzle: true,
+    reqClueForPuzzle: 'alibi_sheet',
+    title: '【論理パズルⅠ】真実の扉Ⅸ：市長のアリバイ工作の矛盾',
+    question: 'Q9. 証言書によると「23:00に市長はオペラ座にいた」と秘書は主張するが、同時刻に第4埠頭で市長の専用車が目撃されている。この矛盾から導かれる推理はどれか？',
+    options: [
+      { id: 'opt1', label: 'A. 秘書が時間を見間違えており、実際は翌日の出来事だった' },
+      { id: 'opt2', label: 'B. 市長は影武者をオペラ座に座らせ、本人は第4埠頭から海底へ潜航していた' },
+      { id: 'opt3', label: 'C. 第4埠頭の目撃者が幻覚を見ていただけで、市長は完全に無実である' }
+    ],
+    answerOption: 'opt2',
+    hint: 'オペラ座の楽屋で《劇場関係者のアリバイ証言書》を入手してから論理的に考えよう。',
+    rewardText: '【論理パズルⅠ突破】推理の冴えにより、最大HP+40＆最大SP+20！',
+    onSolve() {
+      Game.maxHp += 40;
+      Game.hp = Game.maxHp;
+      Game.maxSp += 20;
+      Game.sp = Game.maxSp;
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'ded_10',
+    isPuzzle: true,
+    reqClueForPuzzle: 'abyss_tablet',
+    title: '【論理パズルⅡ】真実の扉Ⅹ：深淵の王座を開く三重調律コード',
+    question: 'Q10. 太古の封印石碑の碑文に従い、「①霧の時刻 → ②隔離病棟の鍵 → ③監獄のコード」の正しい数字配列を選択せよ！',
+    options: [
+      { id: 'opt1', label: 'A. 0413 → 1300 → 7749' },
+      { id: 'opt2', label: 'B. 7749 → 0413 → 1300' },
+      { id: 'opt3', label: 'C. 1300 → 0413 → 7749' }
+    ],
+    answerOption: 'opt3',
+    hint: '太古の深淵回廊の石碑を調べ、《太古の封印石碑の碑文》の順番通りに並べよう。',
+    rewardText: '★最終決戦ゲート開通！《11. 深淵の王座（ラスボス戦域）》が解放された！',
+    onSolve() {
+      unlockLocation('crown');
+      Game.maxHp += 60;
+      Game.hp = Game.maxHp;
+      Game.maxSp += 30;
+      Game.sp = Game.maxSp;
+      Sound.seClue();
+    }
+  }
+];
+/* =========================================================
+   9. 2周目（300年後・怪盗編）全6問推理＆論理パズルデータ
+   ========================================================= */
+const FUTURE_DEDUCTIONS = [
+  {
+    id: 'f_ded_1',
+    title: '怪盗推理Ⅰ：量子アーカイブタワーへの侵入ルート',
+    question: 'Q1. 空中コンテナ港で魔導機神から奪った、量子アーカイブの封印ゲートを解除する最高権限アイテムはどれだ？',
+    answerClue: 'f_card_key',
+    hint: '空中コンテナ港の中ボスを倒し、極秘輸送コンテナから盗み出そう。',
+    rewardText: '★SC開通！《06. 廃墟の旧アビス地下鉄跡》＆《08. 結晶化した水没聖堂跡》が解放！',
+    onSolve() {
+      unlockLocation('subway');
+      unlockLocation('church');
+      Game.maxHp += 50;
+      Game.hp = Game.maxHp;
+      Game.level = Math.max(Game.level, 3);
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'f_ded_2',
+    title: '怪盗推理Ⅱ：魔王アビス・オーバーロードの致命的な弱点',
+    question: 'Q2. 300年前の初代守護者キョウが量子サーバーに遺した記録によると、魔力耐性を持つ魔王を打ち倒すために必要な戦術と鍵はどれだ？',
+    answerClue: 'f_legacy_log',
+    hint: '量子記憶アーカイブタワーのサーバーをハッキングして記録を手に入れよう。',
+    rewardText: '★軌道要塞ルート解放！《09. 魔王軍・軌道要塞《タルタロス》》への潜入が可能に！',
+    onSolve() {
+      unlockLocation('prison');
+      Game.maxHp += 60;
+      Game.hp = Game.maxHp;
+      Game.level = Math.max(Game.level, 4);
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'f_ded_3',
+    title: '怪盗推理Ⅲ：三つの聖遺物の共鳴と覚醒の証明',
+    question: 'Q3. 太陽・月・星の三つの聖遺物を水没聖堂の祭壇に捧げたことで得られた、キョウの力を極限まで引き上げる聖紋章はどれだ？',
+    answerClue: 'f_sacred_emblem',
+    hint: '3つの聖遺物をすべて集めた後、結晶化した水没聖堂の祭壇を調べよう。',
+    rewardText: '★最終回廊解放！《10. 虚無の深淵回廊・煉獄門》への扉が開かれた！',
+    onSolve() {
+      unlockLocation('abyss_core');
+      Game.maxHp += 80;
+      Game.hp = Game.maxHp;
+      Game.maxSp += 25;
+      Game.sp = Game.maxSp;
+      Game.level = Math.max(Game.level, 5);
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'f_ded_4',
+    isSub: true,
+    reqSubKey: 'sub1',
+    title: '【怪盗依頼①】怪盗推理Ⅳ：時空を操る懐中時計の奪還',
+    question: 'Q4. 天空オペラ劇場の貴賓金庫（番号8821）から鮮やかに盗み出した古代の秘宝はどれだ？',
+    answerClue: 'f_star_watch',
+    hint: 'アジトで怪盗依頼①を受注した後、天空オペラ劇場の金庫を解錠しよう。',
+    rewardText: '【怪盗依頼①達成】怪盗の身のこなしにより、物理攻撃（幾万の真言）の威力が大幅アップ！',
+    onSolve() {
+      Game.subSolved.sub1 = true;
+      Game.maxHp += 40;
+      Game.hp = Game.maxHp;
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'f_ded_5',
+    isSub: true,
+    reqSubKey: 'sub2',
+    title: '【怪盗依頼②】怪盗推理Ⅴ：財団の魔力搾取を暴く証拠',
+    question: 'Q5. 生体魔導ラボの最奥サーバーから抜き取った、財団総帥の悪事を証明するデータ原盤はどれだ？',
+    answerClue: 'f_fake_patent',
+    hint: '量子アーカイブで怪盗依頼②を受注した後、生体魔導ラボのサーバーを調べよう。',
+    rewardText: '【怪盗依頼②達成】レジスタンスの支援により最大HP+60＆最大SP+30！',
+    onSolve() {
+      Game.subSolved.sub2 = true;
+      Game.maxHp += 60;
+      Game.hp = Game.maxHp;
+      Game.maxSp += 30;
+      Game.sp = Game.maxSp;
+      Sound.seClue();
+    }
+  },
+  {
+    id: 'f_ded_6',
+    isPuzzle: true,
+    reqClueForPuzzle: 'f_sacred_emblem',
+    title: '【最終論理パズル】怪盗推理Ⅵ：魔王玉座を開く三聖遺物の配列',
+    question: 'Q6. 魔王玉座の封印を解くため、三つの聖遺物を「①天体で最も輝く恒星 → ②夜空に満ちる衛星 → ③未来を指し示す道標」の順に配置せよ！',
+    options: [
+      { id: 'opt1', label: 'A. 月の聖杯 → 星の羅針盤 → 太陽の王冠' },
+      { id: 'opt2', label: 'B. 太陽の王冠 → 月の聖杯 → 星の羅針盤' },
+      { id: 'opt3', label: 'C. 星の羅針盤 → 太陽の王冠 → 月の聖杯' }
+    ],
+    answerOption: 'opt2',
+    hint: '恒星＝太陽、衛星＝月、道標＝星の順番に並べよう！',
+    rewardText: '★魔王玉座解放！《11. 魔王玉座《アビス・パンデモニウム》》への最終ゲートが開通！',
+    onSolve() {
+      unlockLocation('crown');
+      Game.maxHp += 70;
+      Game.hp = Game.maxHp;
+      Sound.seClue();
+    }
+  }
+];
+
+/* =========================================================
+   10. ゲーム状態＆コアシステム（日数制限・信頼度・セーブ管理）
+   ========================================================= */
+const SAVE_KEY = 'abyss_detective_v3_complete_save';
+const MAX_DAYS = 20;
+
+let Game = {
+  isFutureArc: false,
+  clearedAct1: false,
+  currentLoc: 'office',
+  day: 1,
+  trust: 3,
+  hp: 130,
+  maxHp: 130,
+  sp: 65,
+  maxSp: 65,
+  level: 1,
+  exp: 0,
+  awakened: false,
+  clues: {},
+  solvedDeductions: {},
+  subAccepted: { sub1: false, sub2: false, sub3: false, sub4: false },
+  subSolved: { sub1: false, sub2: false, sub3: false, sub4: false },
+  visitedSpots: {},
+  defeatedBosses: {},
+  unlockedLocs: ['office', 'pier', 'archive', 'opera', 'hospital'],
+  knownWeakness: {},
+  restedToday: false
+};
+
+function updateContinueBtn() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  const contBtn = document.getElementById('btn-continue');
+  const delTitleBtn = document.getElementById('btn-delete-title');
+  if (contBtn) {
+    contBtn.disabled = !raw;
+    if (raw) {
+      const savedData = JSON.parse(raw);
+      if (savedData.clearedAct1 && !savedData.isFutureArc) {
+        contBtn.innerHTML = '<span>★ NEW ARC：300年後の怪盗編（続きから）</span>';
+        contBtn.style.borderColor = '#a855f7';
+      } else if (savedData.isFutureArc) {
+        contBtn.innerHTML = '<span>CONTINUE（300年後の怪盗編・再開）</span>';
+        contBtn.style.borderColor = '#a855f7';
+      } else {
+        contBtn.innerHTML = '<span>CONTINUE（続きから再開）</span>';
+        contBtn.style.borderColor = '#fff';
+      }
+    }
+  }
+  if (delTitleBtn) delTitleBtn.disabled = !raw;
+}
+
+function triggerGameOver(reasonType) {
+  Sound.seError();
+  Sound.setBGM('none');
+  closeModals();
+  switchScreen('gameover-screen');
+
+  const saved = localStorage.getItem(SAVE_KEY);
+  const goLoadBtn = document.getElementById('btn-go-load');
+  if (goLoadBtn) goLoadBtn.disabled = !saved;
+
+  if (reasonType === 'timeover') {
+    document.getElementById('go-badge').textContent = 'BAD END 01 // TIME LIMIT EXCEEDED (DAY 20 OVER)';
+    document.getElementById('go-title').textContent = 'ETERNAL FOG // 濃霧の終焉';
+    document.getElementById('go-desc').textContent =
+      '行動開始から20日が経過してしまった……。\n' +
+      '満月の潮汐とともに深淵の封印が完全に決壊し、街のすべてが漆黒の闇と災厄に飲み込まれた。\n' +
+      '（ヒント：不要な往復や休息を減らし、開通した★ショートカットを活用してDAY 20以内に深淵の王座へ到達しよう！）';
+  } else if (reasonType === 'trust_lost') {
+    document.getElementById('go-badge').textContent = 'BAD END 02 // DETECTIVE DISGRACED';
+    document.getElementById('go-title').textContent = 'SHATTERED TRUTH // 信頼失墜';
+    document.getElementById('go-desc').textContent =
+      '証拠も確証もないまま当てずっぽうの推理を繰り返した結果、周囲からの信頼を完全に失った……。\n' +
+      '捜査と潜入は打ち切られ、真実は永遠の闇の中へと葬り去られた。\n' +
+      '（ヒント：証拠手帳の解説とヒントをよく読み、確実な証拠を揃えてから推理に挑もう！）';
+  }
+}
+
+function advanceDays(amount) {
+  Game.day = Math.round((Game.day + amount) * 10) / 10;
+  Game.restedToday = false;
+  if (Game.day > MAX_DAYS) {
+    triggerGameOver('timeover');
+    return true;
+  }
+  return false;
+}
+
+function startNewGame() {
+  Sound.init();
+  Sound.seClick();
+  const keepClearFlag = Game.clearedAct1 || false;
+  Game = {
+    isFutureArc: false,
+    clearedAct1: keepClearFlag,
+    currentLoc: 'office',
+    day: 1,
+    trust: 3,
+    hp: 130,
+    maxHp: 130,
+    sp: 65,
+    maxSp: 65,
+    level: 1,
+    exp: 0,
+    awakened: false,
+    clues: {},
+    solvedDeductions: {},
+    subAccepted: { sub1: false, sub2: false, sub3: false, sub4: false },
+    subSolved: { sub1: false, sub2: false, sub3: false, sub4: false },
+    visitedSpots: {},
+    defeatedBosses: {},
+    unlockedLocs: ['office', 'pier', 'archive', 'opera', 'hospital'],
+    knownWeakness: {},
+    restedToday: false
+  };
+  switchScreen('game-screen');
+  Sound.setBGM('explore');
+  moveLocation('office', true);
+  flashBanner('DAY 1 // INVESTIGATION START');
+}
+
+function startFutureArc() {
+  Sound.init();
+  Sound.seClue();
+  Game = {
+    isFutureArc: true,
+    clearedAct1: true,
+    currentLoc: 'office',
+    day: 1,
+    trust: 3,
+    hp: 220,
+    maxHp: 220,
+    sp: 80,
+    maxSp: 80,
+    level: 2,
+    exp: 0,
+    awakened: false,
+    clues: {},
+    solvedDeductions: {},
+    subAccepted: { sub1: false, sub2: false, sub3: false, sub4: false },
+    subSolved: { sub1: false, sub2: false, sub3: false, sub4: false },
+    visitedSpots: {},
+    defeatedBosses: {},
+    unlockedLocs: ['office', 'pier', 'archive', 'opera', 'hospital'],
+    knownWeakness: {},
+    restedToday: false
+  };
+  switchScreen('game-screen');
+  Sound.setBGM('abyss');
+  moveLocation('office', true);
+  flashBanner('300 YEARS LATER // PHANTOM ARC', '#a855f7');
+  setDialogue(
+    '300 YEARS LATER // 怪盗ファントム・キョウ編',
+    '【新シナリオ開始：300年後の超管理都市ネオ・アビス】\n' +
+    '伝説の「深淵の守護者」の活躍から300年――。\n' +
+    '世界は魔力が枯渇し、すべての魔法攻撃の威力が【約半分（0.55倍）】に弱体化している！\n' +
+    'さらに敵である魔王軍は極めて強力だ。物理技《幾万の真言》、弱点ダウン《1 MORE》、そして怪盗の知略を駆使して、最強最悪の魔王《アビス・オーバーロード》を打ち倒せ！'
+  );
+}
+
+function saveGame() {
+  Sound.seClick();
+  localStorage.setItem(SAVE_KEY, JSON.stringify(Game));
+  updateContinueBtn();
+  setDialogue('SYSTEM', '現在の状況（DAY ' + Game.day + ' / 信頼度 ' + Game.trust + ' / 証拠・依頼進捗）をセーブしました。');
+}
+
+function loadGame() {
+  Sound.init();
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return;
+  const savedData = JSON.parse(raw);
+
+  if (savedData.clearedAct1 && !savedData.isFutureArc) {
+    if (confirm('★1周目クリアデータを確認しました！\n\n【OK】を押すと新章《300年後の世界・怪盗編（ハードモード／魔法弱体化）》を開始します！\n（※【キャンセル】を押すと1周目のクリアデータをそのまま再開します）')) {
+      startFutureArc();
+      return;
+    }
+  }
+
+  Game = savedData;
+  if (!Game.subAccepted) Game.subAccepted = { sub1: false, sub2: false, sub3: false, sub4: false };
+  if (!Game.subSolved) Game.subSolved = { sub1: false, sub2: false, sub3: false, sub4: false };
+  if (typeof Game.day !== 'number') Game.day = 1;
+  if (typeof Game.trust !== 'number') Game.trust = 3;
+  switchScreen('game-screen');
+  Sound.setBGM(Game.isFutureArc ? 'abyss' : 'explore');
+  moveLocation(Game.currentLoc, true);
+  flashBanner('CASE RESUMED // DAY ' + Game.day, '#00e5ff');
+}
+
+function deleteSaveData() {
+  Sound.init();
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) {
+    Sound.seError();
+    alert('削除するセーブデータが存在しません。');
+    return;
+  }
+  if (confirm('保存されているセーブデータを完全に削除して初期状態に戻しますか？（この操作は取り消せません）')) {
+    localStorage.removeItem(SAVE_KEY);
+    Game.clearedAct1 = false;
+    Game.isFutureArc = false;
+    Sound.seClick();
+    flashBanner('SAVE DATA DELETED', '#e6193c');
+    updateContinueBtn();
+    alert('セーブデータを完全に削除しました。タイトル画面に戻ります。');
+    switchScreen('title-screen');
+    Sound.setBGM('none');
+  }
+}
+/* =========================================================
+   11. 拠点休息・エリア移動・調査スポット・証拠手帳モーダル
+   ========================================================= */
+function restAtOffice() {
+  Sound.init();
+  if (Game.currentLoc !== 'office') {
+    Sound.seError();
+    setDialogue('SYSTEM', '【休息不可】休息をとるには拠点（01番エリア）へ戻る必要があります！');
+    return;
+  }
+  if (Game.restedToday) {
+    Sound.seError();
+    setDialogue('SYSTEM', '今日はすでに休息をとったばかりだ。これ以上時間を無駄にはできない。行動に出よう！');
+    return;
+  }
+  if (Game.hp >= Game.maxHp && Game.sp >= Game.maxSp) {
+    Sound.seError();
+    setDialogue('SYSTEM', '体力も精神力も万全だ。わざわざ1日を消費して休む必要はないだろう。');
+    return;
+  }
+  if (!confirm('拠点で仮眠をとり、HPとSPを全回復しますか？（※1日が経過し、DAY ' + (Game.day + 1) + ' になります）')) {
+    return;
+  }
+  Sound.seClue();
+  Game.hp = Game.maxHp;
+  Game.sp = Game.maxSp;
+  if (advanceDays(1)) return;
+  Game.restedToday = true;
+  updateHUD();
+  flashBanner('RESTED // DAY ' + Game.day, '#22c55e');
+  setDialogue('SYSTEM', '短い仮眠をとってHPとSPが全回復した。（1日が経過し、現在 DAY ' + Game.day + ' / 20）');
+}
+
+function unlockLocation(locId) {
+  if (!Game.unlockedLocs.includes(locId)) {
+    Game.unlockedLocs.push(locId);
+    flashBanner('SHORTCUT UNLOCKED!', '#f5c542');
+  }
+  renderLocations();
+}
+
+function renderLocations() {
+  const list = document.getElementById('location-list');
+  list.innerHTML = '';
+  const locList = Game.isFutureArc ? FUTURE_LOCATIONS : LOCATIONS;
+
+  locList.forEach(loc => {
+    const unlocked = Game.unlockedLocs.includes(loc.id);
+    const btn = document.createElement('button');
+    btn.className = 'loc-btn' + (Game.currentLoc === loc.id ? ' current' : '') + (loc.shortcutLabel && unlocked ? ' shortcut' : '');
+    btn.disabled = !unlocked;
+    btn.onclick = () => moveLocation(loc.id);
+
+    let tagHtml = '';
+    if (!unlocked) {
+      tagHtml = '<span class="loc-tag" style="color:#64748b;">[LOCKED // 推理・暗号・ボス撃破で解放]</span>';
+    } else if (loc.shortcutLabel) {
+      tagHtml = '<span class="loc-tag">' + loc.shortcutLabel + ' (移動0.5日)</span>';
+    }
+
+    btn.innerHTML = tagHtml + '<div style="font-weight:900; font-size:0.92rem;">' + (unlocked ? loc.name : '？？？') + '</div>' +
+      '<div style="font-size:0.72rem; color:#94a3b8;">' + loc.depth + '</div>';
+    list.appendChild(btn);
+  });
+}
+
+function moveLocation(locId, silent = false) {
+  const locList = Game.isFutureArc ? FUTURE_LOCATIONS : LOCATIONS;
+  const loc = locList.find(l => l.id === locId);
+  if (!loc) return;
+
+  if (!silent && Game.currentLoc !== locId) {
+    Sound.seClick();
+    const costDays = loc.shortcutLabel ? 0.5 : 1;
+    if (advanceDays(costDays)) return;
+  } else if (!silent) {
+    Sound.seClick();
+  }
+
+  Game.currentLoc = locId;
+
+  document.getElementById('hud-chapter').textContent = loc.chapter;
+  document.getElementById('area-depth').textContent = loc.depth;
+  document.getElementById('area-name').textContent = loc.name;
+  document.getElementById('area-desc').textContent = loc.desc;
+
+  const patrolBtn = document.getElementById('btn-patrol');
+  patrolBtn.style.display = (loc.enemyPool && loc.enemyPool.length > 0) ? 'inline-block' : 'none';
+
+  const restBtn = document.getElementById('btn-rest');
+  if (restBtn) {
+    restBtn.style.opacity = (locId === 'office' && !Game.restedToday) ? '1' : '0.6';
+  }
+
+  if (Game.isFutureArc || locId === 'abyss_core' || locId === 'prison' || locId === 'crown') {
+    Sound.setBGM('abyss');
+  } else {
+    Sound.setBGM('explore');
+  }
+
+  updateHUD();
+  renderLocations();
+  renderSpots();
+  if (!silent) {
+    const speaker = Game.isFutureArc ? 'PHANTOM KYO' : 'DETECTIVE KYO';
+    const extraNote = Game.isFutureArc
+      ? '\n※300年後の世界では魔法の威力が半減（0.55倍）しているため、物理技と弱点ダウンを駆使しよう！'
+      : '\n周囲の調査ポイントやサブ事件の手がかりを確認しよう。';
+    setDialogue(speaker, '《' + loc.name + '》へ移動した。（現在 DAY ' + Game.day + ' / 20）' + extraNote);
+  }
+}
+
+function updateHUD() {
+  document.getElementById('hud-day').textContent = Game.day;
+  document.getElementById('hud-trust').textContent = Game.trust;
+  document.getElementById('hud-hp').textContent = Game.hp;
+  document.getElementById('hud-maxhp').textContent = Game.maxHp;
+  document.getElementById('hud-sp').textContent = Game.sp;
+  document.getElementById('hud-maxsp').textContent = Game.maxSp;
+
+  const clueCount = Object.keys(Game.clues).length;
+  document.getElementById('hud-clue-count').textContent = clueCount;
+
+  const dedCount = Object.keys(Game.solvedDeductions).length;
+  if (Game.isFutureArc) {
+    document.getElementById('hud-ded-count').textContent = dedCount + '/6';
+    const subCount = (Game.subSolved.sub1 ? 1 : 0) + (Game.subSolved.sub2 ? 1 : 0);
+    document.getElementById('hud-sub-count').textContent = subCount + '/2';
+    document.getElementById('hud-rank').textContent = '怪盗ファントム (Lv.' + Game.level + ')';
+  } else {
+    document.getElementById('hud-ded-count').textContent = dedCount + '/10';
+    const subCount =
+      (Game.subSolved.sub1 ? 1 : 0) +
+      (Game.subSolved.sub2 ? 1 : 0) +
+      (Game.subSolved.sub3 ? 1 : 0) +
+      (Game.subSolved.sub4 ? 1 : 0);
+    document.getElementById('hud-sub-count').textContent = subCount + '/4';
+
+    let rankStr = '見習い探偵 (Lv.1)';
+    if (Game.level === 2) rankStr = '敏腕探偵 (Lv.2)';
+    if (Game.level === 3) rankStr = '特級捜査官 (Lv.3)';
+    if (Game.level === 4) rankStr = '名探偵・覚醒 (Lv.4)';
+    if (Game.level >= 5) rankStr = '深淵の守護者 (Lv.5)';
+    document.getElementById('hud-rank').textContent = rankStr;
+  }
+}
+
+function setDialogue(speaker, text, extraHtml = '', choices = []) {
+  document.getElementById('dlg-speaker').textContent = speaker;
+  document.getElementById('dlg-text').innerHTML = text;
+  document.getElementById('dlg-extra').innerHTML = extraHtml;
+
+  const cList = document.getElementById('dlg-choices');
+  cList.innerHTML = '';
+  choices.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'p-btn';
+    btn.innerHTML = '<span>' + c.label + '</span>';
+    btn.onclick = c.action;
+    cList.appendChild(btn);
+  });
+}
+
+function renderSpots() {
+  const grid = document.getElementById('spots-grid');
+  grid.innerHTML = '';
+  const spotMap = Game.isFutureArc ? FUTURE_SPOTS : SPOTS;
+  const spots = spotMap[Game.currentLoc] || [];
+
+  spots.forEach(spot => {
+    const isDone = Game.visitedSpots[spot.id];
+    const card = document.createElement('div');
+    let extraClass = '';
+    if (isDone) extraClass += ' done';
+    if (spot.isBoss) extraClass += ' boss-spot';
+    if (spot.isSub) extraClass += ' sub-spot';
+
+    card.className = 'spot-card' + extraClass;
+    let typeColor = '';
+    if (spot.isBoss) typeColor = 'color:#ff3b5c;';
+    else if (spot.isSub) typeColor = 'color:#d8b4fe;';
+
+    card.innerHTML =
+      '<div class="spot-type" style="' + typeColor + '">' + spot.type + '</div>' +
+      '<div class="spot-title">' + spot.title + '</div>' +
+      '<div style="font-size:0.76rem; color:#94a3b8;">' + spot.desc + '</div>';
+    card.onclick = () => {
+      Sound.init();
+      Sound.seClick();
+      const res = spot.action();
+      if (!res) return;
+
+      if (res.askCode) {
+        const inputId = 'code-in-' + spot.id;
+        const extra =
+          '<div class="code-input-row">' +
+          '<input id="' + inputId + '" class="code-input" maxlength="4" placeholder="0000" />' +
+          '<button class="p-btn" onclick="verifySpotCode(\'' + Game.currentLoc + '\',\'' + spot.id + '\',\'' + inputId + '\')"><span>解除実行</span></button>' +
+          '</div>';
+        setDialogue(res.speaker, res.text, extra);
+      } else {
+        Game.visitedSpots[spot.id] = true;
+        setDialogue(res.speaker, res.text);
+      }
+      renderSpots();
+      updateHUD();
+    };
+    grid.appendChild(card);
+  });
+}
+
+function verifySpotCode(locId, spotId, inputId) {
+  const spotMap = Game.isFutureArc ? FUTURE_SPOTS : SPOTS;
+  const spot = (spotMap[locId] || []).find(s => s.id === spotId);
+  if (!spot) return;
+  const res = spot.action();
+  const inp = document.getElementById(inputId);
+  const val = (inp ? inp.value : '').trim();
+  if (val === res.askCode) {
+    Game.visitedSpots[spot.id] = true;
+    res.onCodeSuccess();
+    renderSpots();
+    updateHUD();
+  } else {
+    Sound.seError();
+    flashBanner('ACCESS DENIED!!', '#e6193c');
+    setDialogue('SECURITY SYSTEM', '【エラー】暗証番号「' + val + '」は一致しません！手に入れた資料やコードを再確認しよう。');
+  }
+}
+
+function gainClue(id, title, desc) {
+  if (!Game.clues[id]) {
+    Game.clues[id] = { title, desc };
+    Sound.seClue();
+    flashBanner('NEW CLUE ACQUIRED!', '#00e5ff');
+    updateHUD();
+  }
+}
+
+function closeModals() {
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.classList.remove('active'));
+}
+
+function openClueModal() {
+  Sound.seClick();
+  const list = document.getElementById('clue-list');
+  list.innerHTML = '';
+  const keys = Object.keys(Game.clues);
+  if (keys.length === 0) {
+    list.innerHTML = '<p style="color:#94a3b8;">まだ証拠品や秘宝を集めていません。各地の現場を調査しよう。</p>';
+  } else {
+    keys.forEach(k => {
+      const c = Game.clues[k];
+      const div = document.createElement('div');
+      div.className = 'clue-item';
+      div.innerHTML =
+        '<div style="font-weight:900; color:var(--cyan); font-size:1rem;">' + c.title + '</div>' +
+        '<div style="font-size:0.86rem; color:#cbd5e1; margin-top:4px; line-height:1.5;">' + c.desc + '</div>';
+      list.appendChild(div);
+    });
+  }
+  document.getElementById('clue-modal').classList.add('active');
+}
+/* =========================================================
+   12. 推理＆論理パズルモーダル・バトルシステム前半
+   ========================================================= */
+function openDeductionModal() {
+  Sound.seClick();
+  document.getElementById('modal-trust-val').textContent = Game.trust;
+  const list = document.getElementById('deduction-list');
+  list.innerHTML = '';
+  const clueKeys = Object.keys(Game.clues);
+  const dedList = Game.isFutureArc ? FUTURE_DEDUCTIONS : DEDUCTIONS;
+
+  dedList.forEach(ded => {
+    const solved = !!Game.solvedDeductions[ded.id];
+    const box = document.createElement('div');
+    box.className = 'clue-item';
+    box.style.borderLeftColor = solved ? '#22c55e' : (ded.isPuzzle ? '#00e5ff' : (ded.isSub ? '#a855f7' : '#f5c542'));
+
+    let headerHtml =
+      '<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">' +
+      '<strong style="font-size:1rem; color:' + (solved ? '#4ade80' : '#f8fafc') + ';">' + ded.title + '</strong>' +
+      '<span style="font-size:0.76rem; font-weight:900; padding:2px 8px; background:' + (solved ? '#14532d' : '#1e293b') + '; color:' + (solved ? '#86efac' : '#f5c542') + ';">' +
+      (solved ? 'SOLVED // 突破済み' : 'UNSOLVED // 未解明') + '</span></div>' +
+      '<p style="font-size:0.88rem; margin:8px 0; line-height:1.55;">' + ded.question + '</p>' +
+      '<p style="font-size:0.78rem; color:#94a3b8;">ヒント：' + ded.hint + '</p>';
+
+    if (solved) {
+      headerHtml += '<div style="margin-top:6px; font-size:0.84rem; color:#4ade80; font-weight:900;">▶ ' + ded.rewardText + '</div>';
+      box.innerHTML = headerHtml;
+    } else if (ded.isSub && !Game.subAccepted[ded.reqSubKey]) {
+      headerHtml += '<div style="margin-top:8px; font-size:0.82rem; color:#d8b4fe; font-weight:900;">🔒 この依頼はまだ正式受注していません。各地の依頼スポットから受注してください。</div>';
+      box.innerHTML = headerHtml;
+    } else if (ded.isPuzzle && !Game.clues[ded.reqClueForPuzzle]) {
+      headerHtml += '<div style="margin-top:8px; font-size:0.82rem; color:#38bdf8; font-weight:900;">🔒 論理パズルに必要な手がかりをまだ入手していません。</div>';
+      box.innerHTML = headerHtml;
+    } else {
+      box.innerHTML = headerHtml;
+      const btnGrid = document.createElement('div');
+      btnGrid.className = 'ded-evidence-grid';
+
+      if (ded.isPuzzle) {
+        ded.options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = 'ev-pick-btn';
+          btn.textContent = opt.label;
+          btn.onclick = () => submitDeduction(ded, opt.id);
+          btnGrid.appendChild(btn);
+        });
+      } else {
+        if (clueKeys.length === 0) {
+          btnGrid.innerHTML = '<div style="font-size:0.8rem; color:#f87171;">※証拠品・秘宝を1つも所持していません。</div>';
+        } else {
+          clueKeys.forEach(ck => {
+            const btn = document.createElement('button');
+            btn.className = 'ev-pick-btn';
+            btn.textContent = '▶ 突きつける：' + Game.clues[ck].title;
+            btn.onclick = () => submitDeduction(ded, ck);
+            btnGrid.appendChild(btn);
+          });
+        }
+      }
+      box.appendChild(btnGrid);
+    }
+
+    list.appendChild(box);
+  });
+
+  document.getElementById('deduction-modal').classList.add('active');
+}
+
+function submitDeduction(ded, selectedKey) {
+  const isCorrect = ded.isPuzzle ? (selectedKey === ded.answerOption) : (selectedKey === ded.answerClue);
+
+  if (isCorrect) {
+    Game.solvedDeductions[ded.id] = true;
+    ded.onSolve();
+    updateHUD();
+    renderLocations();
+    flashBanner('TRUTH UNLOCKED!!', '#22c55e');
+    openDeductionModal();
+    setDialogue('TRUTH GATE // 推理成功', '【' + ded.title + ' 突破！】\n' + ded.rewardText);
+  } else {
+    Game.trust--;
+    Sound.seError();
+    updateHUD();
+    if (Game.trust <= 0) {
+      triggerGameOver('trust_lost');
+      return;
+    }
+    flashBanner('OBJECTION!! TRUST -1', '#e6193c');
+    openDeductionModal();
+    alert('【推理失敗！】その証拠・選択では矛盾を証明できない！\n当てずっぽうの推理により信頼度が減少した（残り信頼度：' + Game.trust + ' / 3）');
+  }
+}
+
+/* --- バトル制御 --- */
+let Battle = {
+  enemy: null,
+  isDown: false,
+  oneMore: false,
+  guarding: false,
+  charging: false,
+  busy: false,
+  healUsed: 0
+};
+
+function triggerRandomShadow() {
+  Sound.init();
+  const locList = Game.isFutureArc ? FUTURE_LOCATIONS : LOCATIONS;
+  const loc = locList.find(l => l.id === Game.currentLoc);
+  if (!loc || !loc.enemyPool || loc.enemyPool.length === 0) return;
+
+  const pickKey = loc.enemyPool[Math.floor(Math.random() * loc.enemyPool.length)];
+  startBattle(pickKey);
+}
+
+function startBattle(enemyId) {
+  const base = ENEMIES[enemyId];
+  if (!base) return;
+
+  Battle = {
+    enemy: JSON.parse(JSON.stringify(base)),
+    isDown: false,
+    oneMore: false,
+    guarding: false,
+    charging: false,
+    busy: false,
+    healUsed: 0
+  };
+
+  Sound.setBGM('abyss');
+  switchScreen('battle-screen');
+  const bannerColor = Game.isFutureArc ? '#a855f7' : '#e6193c';
+  const bannerText = Battle.enemy.isFinalBoss
+    ? (Game.isFutureArc ? 'TRUE DEMON LORD!!' : 'FINAL BATTLE!!')
+    : (Battle.enemy.isMidBoss ? 'GUARDIAN SHADOW!!' : 'SHADOW ENCOUNTER!!');
+  flashBanner(bannerText, bannerColor);
+
+  const startMsg = Game.isFutureArc
+    ? '【300年後の強敵】《' + Battle.enemy.name + '》が現れた！※この時代では魔法ダメージが0.55倍に弱体化している！'
+    : '《' + Battle.enemy.name + '》が現れた！弱点属性を突いて「1 MORE！」を狙え！';
+  updateBattleUI(startMsg);
+}
+
+function updateBattleUI(logText) {
+  const e = Battle.enemy;
+  document.getElementById('enemy-type').textContent = e.type;
+  document.getElementById('enemy-name').textContent = e.name;
+  document.getElementById('enemy-hp-text').textContent = Math.max(0, e.hp) + '/' + e.maxHp;
+  document.getElementById('enemy-hp-bar').style.width = Math.max(0, (e.hp / e.maxHp) * 100) + '%';
+
+  const emblem = document.getElementById('enemy-emblem');
+  const statusEl = document.getElementById('enemy-status');
+  emblem.classList.remove('downed', 'charging');
+
+  if (Battle.isDown) {
+    emblem.classList.add('downed');
+    statusEl.textContent = '★ DOWN!! 総攻撃（ABYSS BURST）可能！';
+  } else if (Battle.charging) {
+    emblem.classList.add('charging');
+    statusEl.textContent = '⚠ 危険：深淵の魔力を集中している！（防御または弱点ダウンで阻止せよ）';
+  } else {
+    statusEl.textContent = '';
+  }
+
+  const weakKnown = Game.knownWeakness[e.id] || Game.awakened;
+  document.getElementById('btl-weak-info').textContent = weakKnown ? e.weakLabel : '？？？ (アナライズで看破)';
+
+  document.getElementById('btl-hp').textContent = Game.hp + '/' + Game.maxHp;
+  document.getElementById('btl-sp').textContent = Game.sp + '/' + Game.maxSp;
+  document.getElementById('btl-turn').textContent = Battle.oneMore ? '1 MORE!! BONUS TURN' : 'PLAYER TURN // KYO';
+
+  if (logText) {
+    document.getElementById('btl-log').innerHTML = logText;
+  }
+
+  renderBattleCommands();
+}
+
+function renderBattleCommands() {
+  const grid = document.getElementById('btl-commands');
+  grid.innerHTML = '';
+
+  if (Battle.isDown) {
+    const aoaBtn = document.createElement('button');
+    aoaBtn.className = 'p-btn';
+    aoaBtn.style.gridColumn = '1 / -1';
+    aoaBtn.style.background = '#e6193c';
+    aoaBtn.style.borderColor = '#f5c542';
+    aoaBtn.disabled = Battle.busy;
+    aoaBtn.innerHTML = '<span>★ ABYSS BURST（アストラル総攻撃で一気に叩き伏せる！）</span>';
+    aoaBtn.onclick = () => executeAbyssBurst();
+    grid.appendChild(aoaBtn);
+  }
+
+  SKILLS.forEach(sk => {
+    if (sk.reqSub1 && !Game.isFutureArc && !Game.subSolved.sub1) return;
+    const cost = (!Game.isFutureArc && Game.subSolved.sub2 && sk.spCost > 0) ? Math.max(2, sk.spCost - 3) : sk.spCost;
+    const healExhausted = (sk.type === 'heal' && Battle.healUsed >= 2);
+
+    const btn = document.createElement('button');
+    btn.className = 'p-btn';
+    btn.disabled = Battle.busy || Game.sp < cost || healExhausted;
+
+    let labelExtra = cost > 0 ? 'SP ' + cost : 'FREE';
+    if (sk.type === 'heal') {
+      labelExtra += ' / 残' + (2 - Battle.healUsed) + '回';
+    }
+
+    btn.innerHTML = '<span>' + sk.name + ' <small style="color:#00e5ff;">(' + labelExtra + ')</small></span>';
+    btn.onclick = () => useSkill(sk, cost);
+    grid.appendChild(btn);
+  });
+
+  if (!Battle.enemy.isFinalBoss && !Battle.enemy.isMidBoss) {
+    const escBtn = document.createElement('button');
+    escBtn.className = 'p-btn';
+    escBtn.style.borderColor = '#64748b';
+    escBtn.disabled = Battle.busy;
+    escBtn.innerHTML = '<span>煙幕で撤退する（ESCAPE）</span>';
+    escBtn.onclick = () => {
+      Sound.seClick();
+      endBattle(false);
+    };
+    grid.appendChild(escBtn);
+  }
+}
+/* =========================================================
+   13. スキル攻撃・敵ターン・勝利＆エンディング分岐・起動初期化
+   ========================================================= */
+function useSkill(sk, actualCost) {
+  if (Battle.busy) return;
+  Battle.busy = true;
+  Battle.guarding = false;
+  Game.sp -= actualCost;
+  const e = Battle.enemy;
+
+  if (sk.type === 'analyze') {
+    Game.knownWeakness[e.id] = true;
+    Sound.seClue();
+    Battle.busy = false;
+    updateBattleUI('【探偵眼・アナライズ】' + e.name + 'の弱点属性は《' + e.weakLabel + '》だと完全に見抜いた！');
+    return;
+  }
+
+  if (sk.type === 'guard') {
+    Battle.guarding = true;
+    Game.sp = Math.min(Game.maxSp, Game.sp + 5);
+    Sound.seClick();
+    updateBattleUI('アストラル障壁を展開し防御態勢に入った！（被ダメージ大幅軽減＆SP+5回復）');
+    setTimeout(() => enemyTurn(), 750);
+    return;
+  }
+
+  if (sk.type === 'heal') {
+    Battle.healUsed++;
+    const rec = sk.power + Game.level * 18;
+    Game.hp = Math.min(Game.maxHp, Game.hp + rec);
+    Sound.seClue();
+    updateBattleUI('熱い珈琲と深い呼吸で精神を整えた！HPが ' + rec + ' 回復！（この戦闘での残り使用回数：' + (2 - Battle.healUsed) + '回）');
+    setTimeout(() => enemyTurn(), 800);
+    return;
+  }
+
+  const isWeak = (sk.type === e.weak);
+  const isMagic = (sk.type === 'fire' || sk.type === 'elec' || sk.type === 'ice' || sk.type === 'truth');
+
+  // 300年後モードでは魔法威力が0.55倍に弱体化し、物理・怪盗技が強化される
+  let modeMult = 1;
+  let nerfNote = '';
+  if (Game.isFutureArc) {
+    if (isMagic) {
+      modeMult = 0.55;
+      nerfNote = '（※魔力枯渇により魔法威力半減！）';
+    } else {
+      modeMult = Game.subSolved.sub1 ? 1.4 : 1.18;
+      nerfNote = '（※物理・怪盗技の鋭い一撃！）';
+    }
+  }
+
+  const sub4Bonus = (!Game.isFutureArc && Game.subSolved.sub4) ? 1.2 : 1;
+  const levelBonus = (1 + (Game.level - 1) * 0.24) * (Game.awakened ? 1.28 : 1) * sub4Bonus * modeMult;
+  let dmg = Math.floor((sk.power + Math.random() * 12) * levelBonus);
+
+  if (isWeak) {
+    dmg = Math.floor(dmg * 1.62);
+    e.hp -= dmg;
+    Game.knownWeakness[e.id] = true;
+    Sound.seWeak();
+
+    if (Battle.charging) {
+      Battle.charging = false;
+    }
+
+    if (e.hp <= 0) {
+      updateBattleUI('WEAK!! ' + e.name + 'に ' + dmg + ' の大ダメージを与え撃破した！' + nerfNote);
+      setTimeout(() => winBattle(), 900);
+      return;
+    }
+
+    if (!Battle.isDown) {
+      Battle.isDown = true;
+      Battle.oneMore = true;
+      Battle.busy = false;
+      flashBanner('1 MORE!! // WEAKNESS', '#f5c542');
+      updateBattleUI('WEAK!! 弱点属性を突き ' + dmg + ' ダメージ！敵の体勢とチャージを崩しダウンさせた！さらに「1 MORE！」発動！' + nerfNote);
+      return;
+    } else {
+      Battle.oneMore = false;
+      Battle.busy = false;
+      updateBattleUI('ダウン中の敵に追撃！ ' + dmg + ' ダメージを与えた！' + nerfNote);
+      return;
+    }
+  } else {
+    e.hp -= dmg;
+    Sound.seHit();
+    Battle.oneMore = false;
+    if (e.hp <= 0) {
+      updateBattleUI(sk.name + '！ ' + dmg + ' ダメージを与え、' + e.name + 'を打ち倒した！' + nerfNote);
+      setTimeout(() => winBattle(), 900);
+      return;
+    }
+    updateBattleUI(sk.name + '！ ' + e.name + 'に ' + dmg + ' のダメージ！' + nerfNote);
+    setTimeout(() => enemyTurn(), 850);
+  }
+}
+
+function executeAbyssBurst() {
+  if (Battle.busy || !Battle.isDown) return;
+  Battle.busy = true;
+  const e = Battle.enemy;
+  const sub3Bonus = (!Game.isFutureArc && Game.subSolved.sub3) ? 1.35 : 1;
+  const sub4Bonus = (!Game.isFutureArc && Game.subSolved.sub4) ? 1.2 : 1;
+  const dmg = Math.floor((115 + Game.level * 32) * (Game.awakened ? 1.3 : 1) * sub3Bonus * sub4Bonus);
+  e.hp -= dmg;
+  Battle.isDown = false;
+  Battle.oneMore = false;
+  Sound.seWeak();
+  flashBanner('ABYSS BURST!!', '#e6193c');
+
+  if (e.hp <= 0) {
+    updateBattleUI('【アストラル総攻撃・決着】守護霊と推理の刃が交差し、' + dmg + ' の超絶ダメージで撃破した！！');
+    setTimeout(() => winBattle(), 1100);
+  } else {
+    updateBattleUI('【アストラル総攻撃】' + e.name + 'に ' + dmg + ' の特大ダメージを叩き込んだ！');
+    setTimeout(() => enemyTurn(), 1000);
+  }
+}
+
+function enemyTurn() {
+  const e = Battle.enemy;
+  Battle.isDown = false;
+  Battle.oneMore = false;
+
+  if (!Battle.charging && (e.isMidBoss || e.isFinalBoss) && Math.random() < 0.35) {
+    Battle.charging = true;
+    Battle.busy = false;
+    Sound.seError();
+    updateBattleUI(e.name + 'は深淵の魔力を激しく集中し始めた！次のターン超強力な一撃が来るぞ！（防御または弱点ダウンで阻止せよ）');
+    return;
+  }
+
+  let rawDmg = e.atk + Math.random() * 10 - Game.level * 2;
+  let attackNote = e.name + 'の攻撃！';
+
+  if (Battle.charging) {
+    rawDmg *= 2.15;
+    Battle.charging = false;
+    attackNote = '【深淵大解放】' + e.name + 'の渾身の一撃が炸裂！！';
+  }
+
+  if (Battle.guarding) {
+    rawDmg *= 0.35;
+    Battle.guarding = false;
+    attackNote += '（アストラル障壁でダメージを大幅に防いだ！）';
+  }
+
+  const dmg = Math.max(6, Math.floor(rawDmg));
+  Game.hp = Math.max(0, Game.hp - dmg);
+  Sound.seHit();
+
+  if (Game.hp <= 0) {
+    updateBattleUI(attackNote + ' キョウは ' + dmg + ' のダメージを受け意識を失った……！');
+    setTimeout(() => {
+      alert('行動不能になった……。拠点へ緊急搬送され、治療のため1日が経過します。');
+      Game.hp = Game.maxHp;
+      Game.sp = Game.maxSp;
+      endBattle(false);
+      if (!advanceDays(1)) {
+        moveLocation('office', true);
+      }
+    }, 900);
+    return;
+  }
+
+  Battle.busy = false;
+  updateBattleUI(attackNote + ' キョウは ' + dmg + ' のダメージを受けた！');
+}
+
+function winBattle() {
+  const e = Battle.enemy;
+  Game.exp += e.exp;
+
+  if (Game.exp >= Game.level * 115 && Game.level < 6) {
+    Game.level++;
+    Game.maxHp += 25;
+    Game.hp = Game.maxHp;
+    Game.maxSp += 10;
+    Game.sp = Game.maxSp;
+  }
+
+  if (e.isMidBoss) {
+    Game.defeatedBosses[e.id] = true;
+    Sound.seClue();
+    if (e.id === 'gear_knight') {
+      gainClue('gear_key', '黒鉄騎士の歯車キー', '第4埠頭の巨大排水門を開閉するための重厚な歯車キー。');
+    } else if (e.id === 'rail_reaper') {
+      gainClue('dome_pass', '深海ドーム端末制御コード', '深海観測ドームのメイン制御端末をハッキングするための認証キー。');
+    } else if (e.id === 'warden_armor') {
+      Game.maxHp += 45;
+      Game.hp = Game.maxHp;
+      Game.maxSp += 20;
+      Game.sp = Game.maxSp;
+    } else if (e.id === 'f_boss_general') {
+      gainClue('f_demon_key', '深淵の魔導鍵', '魔王玉座への封印を解くために必要な堕天将軍の鍵。');
+    }
+  }
+
+  if (e.isFinalBoss) {
+    switchScreen('game-screen');
+    Sound.setBGM('explore');
+
+    // 2周目（300年後・怪盗編）のラスボス（魔王）撃破時
+    if (Game.isFutureArc) {
+      flashBanner('LEGENDARY PHANTOM // TRUE CLEAR!!', '#a855f7');
+      setDialogue(
+        'EPILOGUE // 300年後の夜明け（怪盗編・完全制覇）',
+        '【300年後の新章・完全クリア！！（DAY ' + Game.day + ' 撃破）】\n' +
+        '弱体化した魔力と過酷な魔王軍の猛攻をくぐり抜け、怪盗ファントム・キョウはついに最強最悪の魔王《アビス・オーバーロード》を討ち果たした！\n' +
+        '盗み出した《三つの聖遺物》がネオ・アビスの空に輝き、300年の時を超えて「深淵の守護者」の伝説は新たな時代へと受け継がれる――！\n' +
+        '（超ハードモード《300年後の怪盗編》完全クリアおめでとうございます！）',
+        '',
+        [
+          {
+            label: 'タイトル画面へ戻る（最初に戻る）',
+            action: () => {
+              Sound.seClick();
+              switchScreen('title-screen');
+              updateContinueBtn();
+            }
+          }
+        ]
+      );
+      updateHUD();
+      return;
+    }
+
+    // 1周目（現代編）クリア時：300年後シナリオ解放フラグを保存
+    Game.clearedAct1 = true;
+    localStorage.setItem(SAVE_KEY, JSON.stringify(Game));
+    updateContinueBtn();
+
+    const all10Solved = Object.keys(Game.solvedDeductions).length >= 10;
+    const all4Sub =
+      Game.subSolved.sub1 &&
+      Game.subSolved.sub2 &&
+      Game.subSolved.sub3 &&
+      Game.subSolved.sub4;
+
+    const endSpeaker = (all10Solved && all4Sub)
+      ? 'SECRET TRUE ENDING // 深淵の真なる守護者'
+      : 'NORMAL ENDING // 霧の晴れた港町';
+
+    const endText = (all10Solved && all4Sub)
+      ? '【真・隠しエンディング達成！！（DAY ' + Game.day + ' クリア ／ 推理10/10＆サブ事件4/4完全制覇）】\n' +
+        '《アビス・モナーク》を打ち倒した瞬間、サブ事件で手に入れた装置と聖印が共鳴し、太古の災厄の核まで完全に浄化された！\n' +
+        '霧が消え去ったアビス・ポートに平和が戻り、探偵キョウの名は伝説として語り継がれることとなる――。\n\n' +
+        '★【新章解放】タイトルへ戻り「CONTINUE（続きから再開）」を押すと、《300年後の世界・怪盗編（ハードモード）》がプレイ可能になりました！'
+      : '【通常エンディング：事件解決（DAY ' + Game.day + ' クリア ／ 推理達成数 ' + Object.keys(Game.solvedDeductions).length + '/10）】\n' +
+        '深淵の簒奪者《アビス・モナーク》は打ち倒され、市長の陰謀は暴かれた。神隠しに遭っていた市民たちも無事に生還した！\n\n' +
+        '★【新章解放】タイトルへ戻り「CONTINUE（続きから再開）」を押すと、《300年後の世界・怪盗編（ハードモード）》がプレイ可能になりました！';
+
+    flashBanner((all10Solved && all4Sub) ? 'SECRET TRUE ENDING!!' : 'CASE CLOSED // NEXT ARC UNLOCKED', '#00e5ff');
+    setDialogue(
+      endSpeaker,
+      endText,
+      '',
+      [
+        {
+          label: 'タイトル画面へ戻る（最初に戻る ／ 300年後の新章へ）',
+          action: () => {
+            Sound.seClick();
+            switchScreen('title-screen');
+            updateContinueBtn();
+          }
+        }
+      ]
+    );
+    updateHUD();
+    return;
+  }
+
+  endBattle(true);
+}
+
+function endBattle(won) {
+  switchScreen('game-screen');
+  const isDeep = Game.isFutureArc || Game.currentLoc === 'abyss_core' || Game.currentLoc === 'prison' || Game.currentLoc === 'crown';
+  Sound.setBGM(isDeep ? 'abyss' : 'explore');
+  updateHUD();
+  renderSpots();
+  if (won) {
+    const msg = Battle.enemy.dropMsg
+      ? Battle.enemy.dropMsg + '\n（新たなルートや仕掛けが解除できるようになった！関連エリアを確認しよう！）'
+      : '影を撃退した！行動を続行しよう。（EXP +' + Battle.enemy.exp + '）';
+    setDialogue(Game.isFutureArc ? 'PHANTOM KYO' : 'DETECTIVE KYO', msg);
+  } else {
+    setDialogue(Game.isFutureArc ? 'PHANTOM KYO' : 'DETECTIVE KYO', '煙幕を使って一度撤退した。拠点で休息して体勢を立て直そう。（※休息は1日経過します）');
+  }
+}
+
+/* =========================================================
+   14. 起動初期化＆キーボードショートカット
+   ========================================================= */
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' && document.getElementById('op-screen').classList.contains('active')) {
+    e.preventDefault();
+    nextOpSlide();
+  }
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  renderOpSlide();
+  updateContinueBtn();
+});
+</script>
+</body>
+</html>
